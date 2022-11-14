@@ -1,0 +1,34 @@
+MODEL:
+  TYPE: ResNet18
+  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_parial_nocen_noshu_latest0.2
+  ENSEM_TYPE: ResNet18_Branches
+  ENSEM_NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_parial_nocen_noshu_latest0.2
+  CLASSIFIER: 'linear'
+  DROP_PATH_RATE: 0.
+TRAIN:
+  OPTIMIZER:
+    NAME: 'sgd'
+  LR_SCHEDULER:
+    NAME: 'cosine'
+  BASE_LR: 0.001
+  WEIGHT_DECAY: 5e-4
+  MIN_LR: 1e-4
+  EPOCHS: 60
+  CLIP_GRAD: 20.0    #waited to make sure
+  T: 5.0
+  ACCUMULATION_STEPS: 1
+  RANDOM_SAMPLER: True
+  MODEL_SELECTION: 'lossacc' #valacc
+DATA :
+  DATASET: 'PACS'
+  SPLIT: 'special'
+  SPLIT_RATE : 0.7
+  BATCH_SIZE: 16
+DISTILL:
+  GAMMA: 0.2
+  IDENTICAL_LOGIT: True
+AUG: 
+  AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
+  
+
+
