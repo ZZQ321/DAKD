@@ -25,7 +25,7 @@ DATA :
   SPLIT_RATE: 0.8
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.05
+  GAMMA: 0.1
   IDENTICAL_LOGIT: True
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
