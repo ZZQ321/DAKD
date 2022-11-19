@@ -726,7 +726,7 @@ def split_dataset_class_wide(dataset,ratio,train_transform,val_transform):
 
 
 if __name__=='__main__':
-    root = '/home/zzq/data'
+    root = '~/data'
     hparams={'split':False}
     dataset = OfficeHome(root,[0],hparams)
     print(len(dataset))

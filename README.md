@@ -2,6 +2,9 @@
 # 1- train  multi-expert
 # 2- oriented knowledge distillation
 
+# change data path in config.py line30:
+# _C.DATA.DATA_PATH = '/data/path'
+
 # Related command for DAKD
 
 # for OfficeHome with Resnet-18 backbone
