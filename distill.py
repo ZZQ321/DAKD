@@ -33,6 +33,13 @@ from models.ensembles import Distilation, Ensemble
 from optimizer import build_optimizer
 from logger import create_logger
 from utils import load_checkpoint, save_checkpoint, get_grad_norm, auto_resume_helper
+from utils import swa_utils
+import swad as swad_module
+from domainbed.evaluator import Evaluator
+from domainbed.datasets import get_dataset, split_dataset
+from domainbed.lib.fast_data_loader import InfiniteDataLoader, FastDataLoader
+from domainbed.lib import misc
+from domainbed.lib.query import Q
 #from domain_train import classic_training,classic_test,classic_setting
 
 try:
@@ -124,8 +131,39 @@ def main(config):
         lr_scheduler = build_scheduler(config, optimizer, len(sources_loader))
         max_accuracy= 0.0
         min_loss = 1e10
+        ###### +swad ####
+        #############
+            # setup eval loaders
+        records = []
+        dataset, in_splits, out_splits = get_dataset([target_idx], config)
+        eval_loaders_kwargs = []
+        for i, (env, _) in enumerate(in_splits + out_splits):
+            batchsize = config.swad_kwargs["test_batchsize"]
+            loader_kwargs = {"dataset": env, "batch_size": batchsize, "num_workers": dataset.N_WORKERS}
+            eval_loaders_kwargs.append(loader_kwargs)
+
+        eval_weights = [None for _, weights in (in_splits + out_splits )]
+        eval_loader_names = ["env{}_in".format(i) for i in range(len(in_splits))]
+        eval_loader_names += ["env{}_out".format(i) for i in range(len(out_splits))]
+        # eval_loader_names += ["env{}_inTE".format(i) for i in range(len(test_splits))]
+        eval_meta = list(zip(eval_loader_names, eval_loaders_kwargs, eval_weights))
+        evaluator = Evaluator(
+        [target_idx],
+        eval_meta,
+        domain_num,
+        logger,
+        # debug=args.debug,
+        # target_env=target_env,
+        )
+        if config.swad:
+            swad_algorithm = swa_utils.AveragedModel(model)       #LossValley default
+            swad = swad_module.LossValley(evaluator, **config.swad_kwargs)
+        ###############end for swad
         for epoch in range(config.TRAIN.START_EPOCH, config.TRAIN.EPOCHS):
-            train_one_epoch(config, model,criterion, distill,sources_loader, optimizer, epoch, mixup_fn, lr_scheduler,logger)
+            results_keys = train_one_epoch(config, model,criterion, distill,sources_loader, optimizer, 
+            epoch, mixup_fn, lr_scheduler,logger,swad_algorithm,swad,evaluator,records)
+            if results_keys==False:
+                break
             if  epoch % config.SAVE_FREQ == 0 or epoch == (config.TRAIN.EPOCHS - 1):
                 #save_checkpoint(config, epoch, model, max_accuracy, optimizer, lr_scheduler, logger)
                 pass 
@@ -181,6 +219,46 @@ def main(config):
         # val_ens_dpa_Accs.append(valacc_dpa_add_ens)
         #write acc log
         test_LastAcc_list.append(acc_test)
+    
+    #find best
+    logger.info("---")
+    records = Q(records)
+    oracle_best = records.argmax("test_out")["test_in"]
+    iid_best = records.argmax("train_out")["test_in"]
+    last = records[-1]["test_in"]
+    in_key = "train_out"
+
+    iid_best_indomain = records.argmax("train_out")[in_key]
+    last_indomain = records[-1][in_key]
+
+    ret = {
+        "oracle": oracle_best,
+        "iid": iid_best,
+        "last": last,
+        "last (inD)": last_indomain,
+        "iid (inD)": iid_best_indomain,
+    }
+
+    # Evaluate SWAD
+    if swad:
+        swad_algorithm = swad.get_final_model()    #selected model with swad
+        logger.warning("Evaluate SWAD ...")
+        accuracies, summaries = evaluator.evaluate(swad_algorithm)
+        results = {**summaries, **accuracies}
+        start = swad_algorithm.start_step
+        end = swad_algorithm.end_step
+        step_str = f" [{start}-{end}]  (N={swad_algorithm.n_averaged})"
+        row = misc.to_row([results[key] for key in results_keys if key in results]) + step_str
+        logger.info(row)
+
+        ret["SWAD"] = results["test_in"]
+        ret["SWAD (inD)"] = results[in_key]
+
+    for k, acc in ret.items():
+        logger.info(f"{k} = {acc:.3%}")
+
+
+
     first_line = deepcopy(config.DATA.DOMAINS)
     first_line.append('avg\n')
     writeline('',['\n'],max_acc_path) 
@@ -214,7 +292,8 @@ def writeline(name,varieties,path):
             f.write(f'\n')
 
 
-def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epoch, mixup_fn, lr_scheduler,logger):
+def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epoch,
+ mixup_fn, lr_scheduler,logger,swad_algorithm,swad,evaluator,records):
     model.train()
     domain_num=len(config.DATA.DOMAINS)
     batch_time = AverageMeter()
@@ -229,8 +308,11 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
         num_steps = len(data_loader)
 
     #scaler = GradScaler()
-
+    step=0
     for idx, data in enumerate(data_loader):
+        step = step +1
+        if step == 200:
+            break
         if config.TRAIN.RANDOM_SAMPLER:
             samples = data[0].cuda(non_blocking=True)
             targets = data[1].cuda(non_blocking=True)
@@ -244,6 +326,8 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
             gamma = config.DISTILL.GAMMA
             loss = (loss_cata + gamma * (config.TRAIN.T**2) * loss_distil)/config.TRAIN.ACCUMULATION_STEPS
             loss.backward()
+            if config.swad:
+                swad_algorithm.update_parameters(model, step=idx)
         else:
             samples=[]
             targets=[]
@@ -258,10 +342,6 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
             gamma = config.DISTILL.GAMMA
             loss = (loss_cata + gamma * (config.TRAIN.T**2) * loss_distil)/config.TRAIN.ACCUMULATION_STEPS
             loss.backward()
-            
-
-        # if mixup_fn is not None:
-        #     samples, targets = mixup_fn(samples, targets)
         if config.TRAIN.CLIP_GRAD:
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), config.TRAIN.CLIP_GRAD)
         else:
@@ -281,7 +361,42 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
         loss_meter.update(loss.item(), targets.size(0))
         norm_meter.update(grad_norm)
         batch_time.update(time.time() - end)
-        end = time.time()
+        end = time.time()            
+
+    #evaluate
+    results = {
+            "step": epoch * num_steps,
+            "epoch": epoch,
+            }
+    eval_start_time = time.time()
+    accuracies, summaries = evaluator.evaluate(model)
+    results["eval_time"] = time.time() - eval_start_time
+    results_keys = list(summaries.keys()) + sorted(accuracies.keys()) + list(results.keys())
+    # merge results
+    results.update(summaries)
+    results.update(accuracies)
+    logger.info(misc.to_row(results_keys))
+    logger.info(misc.to_row([results[key] for key in results_keys]))
+    records.append(deepcopy(results))
+    # results = (epochs, loss, step, step_time)
+
+    if swad:
+        def prt_results_fn(results, avgmodel):
+            step_str = f" [{avgmodel.start_step}-{avgmodel.end_step}]"
+            #Convert value list to row string
+            row = misc.to_row([results[key] for key in results_keys if key in results])
+            logger.info(row + step_str)
+
+        swad.update_and_evaluate(
+            swad_algorithm, results["train_out"], results["tr_outloss"], prt_results_fn
+        )
+
+        if hasattr(swad, "dead_valley") and swad.dead_valley:
+            logger.info("SWAD valley is dead -> early stop !")
+            return False
+
+        swad_algorithm = swa_utils.AveragedModel(model)  # reset      
+
         
         if idx % config.PRINT_FREQ == 0:
             #acc = accuracy(outputs,targets)
@@ -299,6 +414,7 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
             tensor_step=epoch*(num_steps//config.PRINT_FREQ)+idx//config.PRINT_FREQ
             #writer.add_scalar(f'Train loss/{config.DATA.DOMAINS[target_idx]}', loss_meter.val,tensor_step)
             #writer.add_scalar(f'Train Acc/{config.DATA.DOMAINS[target_idx]}', acc[0], tensor_step)
+        return results_keys
     epoch_time = time.time() - start
     logger.info(f"EPOCH {epoch} training takes {datetime.timedelta(seconds=int(epoch_time))}")
 

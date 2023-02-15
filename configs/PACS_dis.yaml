@@ -13,7 +13,7 @@ TRAIN:
   BASE_LR: 0.001
   WEIGHT_DECAY: 5e-4
   MIN_LR: 1e-4
-  EPOCHS: 60
+  EPOCHS: 30s
   CLIP_GRAD: 20.0    #waited to make sure
   T: 5.0
   ACCUMULATION_STEPS: 1
@@ -22,13 +22,25 @@ TRAIN:
 DATA :
   DATASET: 'PACS'
   SPLIT: 'special'
-  SPLIT_RATE : 0.7
+  SPLIT_RATE : 0.8
   BATCH_SIZE: 16
+  NUM_WORKERS: 8
 DISTILL:
   GAMMA: 0.2
   IDENTICAL_LOGIT: True
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
+swad: LossValley
+swad_kwargs:
+  n_converge: 3
+  n_tolerance: 6
+  tolerance_ratio: 0.3
+  class_balanced: False
+  data_augmentation: True
+  val_augment: False
+  test_batchsize: 128
+
+
   
 
 

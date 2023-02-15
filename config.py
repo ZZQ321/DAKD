@@ -27,7 +27,7 @@ _C.DATA = CN()
 # Batch size for a single GPU, could be overwritten by command line argument
 _C.DATA.BATCH_SIZE = 128
 # Path to dataset, could be overwritten by command line argument
-_C.DATA.DATA_PATH = '/data/path'
+_C.DATA.DATA_PATH = '/home/zzq/data'
 # _C.DATA.NO_SPLIT_PATH = '~/data'
 # _C.DATA.SPLIT = True
 #Dataset domains,could be overwritten by yaml
@@ -44,7 +44,7 @@ _C.DATA.INTERPOLATION = 'bicubic'
 
 _C.DATA.PIN_MEMORY = True
 # Number of data loading threads
-_C.DATA.NUM_WORKERS = 8
+_C.DATA.NUM_WORKERS = 2
 _C.DATA.SPLIT = 'indomain'
 _C.DATA.SPLIT_RATE = 0.9
 
@@ -134,6 +134,7 @@ _C.TRAIN.PRE_EPOCH =0
 
 _C.TRAIN.RANDOM_SAMPLER = True  #False:Uniform sampler
 _C.TRAIN.MODEL_SELECTION = 'valacc' #valloss
+_C.TRAIN.SWAD = False
 
 # -----------------------------------------------------------------------------
 # Augmentation settings
@@ -204,6 +205,17 @@ _C.DISTILL.GAMMA = 0.167
 _C.DISTILL.IDENTICAL_LOGIT =False
 
 
+####swad
+_C.swad= None
+_C.swad_kwargs=CN()
+_C.swad_kwargs.n_converge= 3
+_C.swad_kwargs.n_tolerance= 6
+_C.swad_kwargs.tolerance_ratio= 0.3
+_C.swad_kwargs.class_balanced= False
+_C.swad_kwargs.data_augmentation= True
+_C.swad_kwargs.val_augment= False
+_C.swad_kwargs.test_batchsize= 128
+
 def _update_config_from_file(config, cfg_file):
     config.defrost()
     with open(cfg_file, 'r') as f:
@@ -268,7 +280,7 @@ def update_config(config, args):
     if args.aug:
         config.AUG.AUGMENT = args.aug
     if args.seed:
-        config.seed = args.seed
+        config.SEED = args.seed
     if args.dataset:
         if  args.dataset in vars(datasets):
             config.DATA.DATASET= args.dataset
