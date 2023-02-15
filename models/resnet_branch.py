@@ -218,15 +218,17 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, 1000)
-        if classifier == 'linear':
-            self.classifier = nn.Linear(512 * block.expansion, num_classes)
-        elif classifier == 'cosine':
-            self.classifier = cosine_classifer(512 * block.expansion, num_classes)
-        elif classifier == 'mlp':
-            self.classifier = MLP(512 * block.expansion, num_classes)
-        else:
-            self.classifier = lambda x : x
-        self.mul = Mulvector(num_classes)
+        self.fc_inv =  nn.Linear(512 * block.expansion, num_classes)
+        self.fc_spe =  nn.Linear(512 * block.expansion, num_classes)
+        # if classifier == 'linear':
+        #     self.classifier = nn.Linear(512 * block.expansion, num_classes)
+        # elif classifier == 'cosine':
+        #     self.classifier = cosine_classifer(512 * block.expansion, num_classes)
+        # elif classifier == 'mlp':
+        #     self.classifier = MLP(512 * block.expansion, num_classes)
+        # else:
+        #     self.classifier = lambda x : x
+        self.mul = Mulvector(512 * block.expansion)
         self.eps = 1e-5
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -287,13 +289,12 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        predict = x
-        # class_out = self.mul(predict)
-        class_out = predict
-        domain_out = predict - class_out
+        x_inv = self.mul(x)
+        x_spe =x - x_inv
+        logit_inv = self.fc_inv(x_inv)
+        logit_spe = self.fc_spe(x_spe)
 
-        return [predict, class_out, domain_out]
+        return torch.stack([logit_inv, logit_spe])
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)

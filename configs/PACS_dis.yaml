@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet18
-  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_parial_nocen_noshu_latest0.2
+  NAME: identi_ens_valmax_dist_lossmin_latest0.2
   ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_parial_nocen_noshu_latest0.2
+  ENSEM_NAME: identi_ens_valmax_dist_lossmin_latest0.2
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:
@@ -13,7 +13,7 @@ TRAIN:
   BASE_LR: 0.001
   WEIGHT_DECAY: 5e-4
   MIN_LR: 1e-4
-  EPOCHS: 60
+  EPOCHS: 3
   CLIP_GRAD: 20.0    #waited to make sure
   T: 5.0
   ACCUMULATION_STEPS: 1

@@ -179,20 +179,21 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
         # if mixup_fn is not None:
         #     samples, targets = mixup_fn(samples, targets)
         out = model(samples)
-        pre_logits_list = []
-        ce_logits_list = []
+        logits_inv = []
+        logits_spe = []
         # domain_logits_list= []
         for index in range(domain_num-1):
-            pre_logits_list.append(out[index][0])
-            ce_logits_list.append(out[index][1])
+            logits_inv.append(out[index][0])
+            logits_spe.append(out[index][1])
             # domain_logits_list.append(out[index][2])
-        pre_logits = torch.cat(pre_logits_list)
-        ce_logits = torch.cat(ce_logits_list)
+        logits_inv = torch.cat(logits_inv)
+        logits_spe = torch.cat(logits_spe)
+        logits = logits_inv + logits_spe
         # domain_logits = torch.cat(domain_logits_list)
         targets =torch.cat(targets)
-        ce_loss = criterion(ce_logits, targets.long())
+        ce_loss = criterion(logits, targets.long())
         # domain_loss = criterion_domain(domain_logits,domain_labels)
-        orth_loss = torch.norm(sum(ce_logits*(pre_logits-ce_logits)))
+        orth_loss = torch.norm(sum(logits_spe*(logits_inv-logits_spe)))
         loss = ce_loss  #+ config.TRAIN.ENSEM_LAMDA*orth_loss
         
         optimizer.zero_grad()
@@ -264,15 +265,15 @@ def validate(config, data_loader, model,num_steps_val,logger):
         #     samples, targets = mixup_fn(samples, targets)
         out = model(samples)
 
-        pre_logits_list = []
-        ce_logits_list = []
+        logits_inv = []
+        logits_spe = []
         # domain_logits_list= []
         for index in range(domain_num-1):
-            pre_logits_list.append(out[index][0])
-            ce_logits_list.append(out[index][1])
+            logits_inv.append(out[index][0])
+            logits_spe.append(out[index][1])
             # domain_logits_list.append(out[index][2])
-        pre_logits = torch.cat(pre_logits_list)
-        ce_logits = torch.cat(ce_logits_list)
+        logits_inv = torch.cat(logits_inv)
+        logits_spe = torch.cat(logits_spe)
         # domain_logits = torch.cat(domain_logits_list)
         #single domain acc
         acc_sig = [0.0 for _ in range(domain_num-1)]
@@ -283,12 +284,12 @@ def validate(config, data_loader, model,num_steps_val,logger):
         #for multi-domain acc    
         targets =torch.cat(targets)
         domain_labels = torch.cat(domain_labels)
-
+        logits = logits_inv + logits_spe
         # measure accuracy and record loss
-        loss = criterion(ce_logits/config.TRAIN.T, targets.long())
+        loss = criterion(logits, targets.long())
         # loss_d = criterion_d(domain_logits,domain_labels)
-        loss_o =torch.norm(sum(ce_logits*(pre_logits-ce_logits),-1))
-        acc1 = accuracy(ce_logits/config.TRAIN.T, targets)
+        loss_o =torch.norm(sum(logits_spe*(logits_inv-logits_spe),-1))
+        acc1 = accuracy(logits, targets)
         # acc_d =accuracy(domain_logits,domain_labels)
         acc1 = torch.Tensor(acc1)
         # acc_d = torch.Tensor(acc_d)
@@ -333,10 +334,11 @@ def test(config, data_loader, model,target_idx,logger):
         samples=samples.cuda(non_blocking=True)
         targets=targets.cuda(non_blocking=True)
         inputs = [deepcopy(samples) for  _ in range(domain_num-1)]
-        out = model(inputs)
+        out = torch.stack(model(inputs))
+        out = torch.sum(out,1)
         acc_sig = [0.0 for _ in range(domain_num-1)]
         for source_idx in range(domain_num-1):
-                acc_sig[source_idx] = accuracy(out[source_idx][1],targets)[0].item()
+                acc_sig[source_idx] = accuracy(out[source_idx],targets)[0].item()
         acc_sig.insert(target_idx,0.0)
 
         for source_idx in range(domain_num):
