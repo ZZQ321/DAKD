@@ -11,7 +11,7 @@ TRAIN:
   BASE_LR: 0.001  
   WEIGHT_DECAY: 5e-4
   MIN_LR: 1e-4
-  EPOCHS: 3
+  EPOCHS: 60
   CLIP_GRAD: 20.0    #waited to make sure
   PRE_EPOCH: 0
   WARMUP_EPOCHS: 0    

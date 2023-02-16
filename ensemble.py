@@ -108,7 +108,7 @@ def main(config):
             acc_sig=test(config, dataloader_tar, model,target_idx,logger)
             writer.add_scalar(f'Test acc/{config.DATA.DOMAINS[target_idx]}',acc1,epoch)
             writer.add_scalar(f'Test loss/{config.DATA.DOMAINS[target_idx]}',loss,epoch)
-            logger.info(f"Accuracy of the network on the {num_steps_val*config.DATA.BATCH_SIZE*(domain_num-1)} test images: {acc1:.1f}%")
+            logger.info(f"Accuracy of the network on the {num_steps_val*config.DATA.BATCH_SIZE*(domain_num-1)} validation images: {acc1:.1f}%")
             model_path = os.path.join(config.OUTPUT,config.DATA.DOMAINS[target_idx], f"{config.DATA.DOMAINS[target_idx]}_model.pth")
             if acc1 > max_acc_split:
                 if config.TRAIN.MODEL_SELECTION == 'valacc':
