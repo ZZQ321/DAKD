@@ -323,11 +323,7 @@ def validate(config, data_loader, model,logger,EnsModel=False):
         else :
             inputs =  [deepcopy(images) for  _ in range(domain_num-1)]
             out = model(inputs)
-            output = []
-            for index in range(domain_num-1):
-                #平缓后loss仍然最小
-                output.append(torch.softmax(out[index][1]/config.TRAIN.T,-1))
-            output = (sum(output)/(domain_num-1))
+            output = torch.sum(torch.sum(torch.stack(out),0),0)
 
         # measure accuracy and record loss
         loss = criterion(output, target.long())
