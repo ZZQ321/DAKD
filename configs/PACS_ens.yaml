@@ -21,7 +21,7 @@ TRAIN:
 DATA :
   DATASET: 'PACS'
   SPLIT: 'special'
-  
+  NUM_WORKERS : 1
   BATCH_SIZE: 16
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
