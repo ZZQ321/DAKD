@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet18
-  NAME: identi_ens_valmax_dist_lossmin_latest0.2
+  NAME: identi_ens_valmax_dist_lossmin_latest
   ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: identi_ens_valmax_dist_lossmin_latest0.2
+  ENSEM_NAME: identi_ens_valmax_dist_lossmin_latest
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:
@@ -20,9 +20,9 @@ TRAIN:
   RANDOM_SAMPLER: True
   MODEL_SELECTION: 'lossacc' #valacc
 DATA :
-  DATASET: 'PACS'
-  SPLIT: 'special'
-  SPLIT_RATE : 0.7
+  DATASET: 'TerraIncognita'
+  SPLIT: 'indomain'
+  SPLIT_RATE : 0.8
   BATCH_SIZE: 16
 DISTILL:
   GAMMA: 1.0

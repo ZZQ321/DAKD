@@ -1,7 +1,7 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_train_partial_nocen_noshuffle_0.15
-  DROP_PATH_RATE: 0.
+  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_partial0.5
+  DROP_PATH_RATE: 0.5
   CLASSIFIER: 'linear'
 TRAIN:
   OPTIMIZER:
@@ -19,13 +19,13 @@ TRAIN:
   T: 5.0
   MODEL_SELECTION: 'valacc' #valacc
 DATA :
-  DATASET: 'OfficeHome'
-  SPLIT: 'indomain'
-  SPLIT_RATE: 0.9
+  DATASET: 'SpecialDomainNet'
+  SPLIT: 'special'  #not work
+  SPLIT_RATE : 0.9  #not work
   BATCH_SIZE: 16
   NUM_WORKERS : 1
 AUG: 
-  AUTO_AUGMENT: 'standard'
+  AUTO_AUGMENT: 'standard' 
   
 
 

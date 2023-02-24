@@ -10,3 +10,4 @@ test.py
 !digitsdg.sh
 *.jpg
 *.png
+!run_all.sh
