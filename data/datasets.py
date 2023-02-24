@@ -25,6 +25,7 @@ import torchvision
 from numpy import arange, var
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data import create_transform
+from .domain_datasets import DomainDataset
 # from .domain_datasets import DomainDataset, Aggregate_DomainDataset
 try:
     from torchvision.transforms import InterpolationMode
@@ -450,6 +451,30 @@ class TerraIncognita(MultipleEnvironmentImageFolder):
         self.dir = os.path.join(root, "terra_incognita/")
         super().__init__(self.dir, test_envs, hparams)
 
+class SpecialDomainNet(MultipleDomainDataset):
+    CHECKPOINT_FREQ = 1000
+    ENVIRONMENTS = ["clipart", "infograph", "painting", "quickdraw", "real", "sketch"]
+    NUM_CLASSES = 345
+    def __init__(self, root, test_envs, hparams):
+        # self.dir = os.path.join(root, "special_domain_net/")
+        self.dir ='/media/zzq/4c5533c9-2e99-45cb-bbd6-ba748735fbe7/zzq/code/DMG/data/DomainNet/tv_0.9_splits'
+        super().__init__()
+        self.datasets=[]
+        self.split =True
+        self.test_envs = test_envs
+        environments = SpecialDomainNet.ENVIRONMENTS
+        augment_transform =  aug_transform(img_size=224,augment=hparams['aug'])
+        transform = aug_transform(img_size=224,augment='noaug')
+        transform_src_val =  transform_tar  = transform
+        for i, environment in enumerate(environments):            
+            if  (i not in test_envs):
+                dataset_train = DomainDataset('DomainNet',environments[i],self.dir,'train',augment_transform)
+                dataset_val = DomainDataset('DomainNet',environments[i],self.dir,'val',transform_src_val)
+                self.datasets.append([dataset_train,dataset_val])
+            else:
+                dataset_test = DomainDataset('DomainNet',environments[si],self.dir,'test',transform_tar)
+                self.datasets.append(dataset_test)
+                
 class SVIRO(MultipleEnvironmentImageFolder):
     CHECKPOINT_FREQ = 300
     ENVIRONMENTS = ["aclass", "escape", "hilux", "i3", "lexus", "tesla", "tiguan", "tucson", "x5", "zoe"]
