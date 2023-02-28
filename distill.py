@@ -34,7 +34,7 @@ from optimizer import build_optimizer
 from logger import create_logger
 from utils import load_checkpoint, save_checkpoint, get_grad_norm, auto_resume_helper
 #from domain_train import classic_training,classic_test,classic_setting
-
+from tqdm import tqdm
 try:
     # noinspection PyUnresolvedReferences
     from apex import amp
@@ -42,7 +42,7 @@ except ImportError:
     amp = None
 
 from torch.cuda.amp import GradScaler, autocast
-
+DEBUG=0
 import pdb
 
 
@@ -230,7 +230,7 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
 
     #scaler = GradScaler()
 
-    for idx, data in enumerate(data_loader):
+    for idx, data in enumerate(tqdm(data_loader)):
         if config.TRAIN.RANDOM_SAMPLER:
             samples = data[0].cuda(non_blocking=True)
             targets = data[1].cuda(non_blocking=True)
@@ -288,14 +288,15 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
             lr = optimizer.param_groups[0]['lr']
             memory_used = torch.cuda.max_memory_allocated() / (1024.0 * 1024.0)
             etas = batch_time.avg * (num_steps - idx)
-            logger.info(
-                # f'{config.DATA.DOMAINS[target_idx]}\t'
-                f'Train: [{epoch}/{config.TRAIN.EPOCHS}][{idx}/{num_steps}]\t'
-                f'eta {datetime.timedelta(seconds=int(etas))} lr {lr:.6f}\t'
-                f'time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
-                f'loss {loss_meter.val:.4f} ({loss_meter.avg:.4f})\t'
-                f'grad_norm {norm_meter.val:.4f} ({norm_meter.avg:.4f})\t'             
-                f'mem {memory_used:.0f}MB')   
+            if DEBUG:
+                logger.info(
+                    # f'{config.DATA.DOMAINS[target_idx]}\t'
+                    f'Train: [{epoch}/{config.TRAIN.EPOCHS}][{idx}/{num_steps}]\t'
+                    f'eta {datetime.timedelta(seconds=int(etas))} lr {lr:.6f}\t'
+                    f'time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
+                    f'loss {loss_meter.val:.4f} ({loss_meter.avg:.4f})\t'
+                    f'grad_norm {norm_meter.val:.4f} ({norm_meter.avg:.4f})\t'             
+                    f'mem {memory_used:.0f}MB')   
             tensor_step=epoch*(num_steps//config.PRINT_FREQ)+idx//config.PRINT_FREQ
             #writer.add_scalar(f'Train loss/{config.DATA.DOMAINS[target_idx]}', loss_meter.val,tensor_step)
             #writer.add_scalar(f'Train Acc/{config.DATA.DOMAINS[target_idx]}', acc[0], tensor_step)

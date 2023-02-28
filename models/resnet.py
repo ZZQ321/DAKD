@@ -207,7 +207,7 @@ class ResNet(nn.Module):
             self.classifier = MLP(512 * block.expansion, num_classes)
         else:
             self.classifier = lambda x : x
-        self.mul = Mulvector(512 * block.expansion)
+        # self.mul = Mulvector(512 * block.expansion)
         self.eps = 1e-5
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -267,7 +267,6 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        x = self.mul(x)
         x = self.classifier(x)
 
         return x
