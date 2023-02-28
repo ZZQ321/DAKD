@@ -34,7 +34,7 @@ from optimizer import build_optimizer
 from logger import create_logger
 from utils import load_checkpoint, save_checkpoint, get_grad_norm, auto_resume_helper
 #from domain_train import classic_training,classic_test,classic_setting
-
+from tqdm import tqdm
 try:
     # noinspection PyUnresolvedReferences
     from apex import amp
@@ -230,7 +230,7 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
 
     #scaler = GradScaler()
 
-    for idx, data in enumerate(data_loader):
+    for idx, data in enumerate(tqdm(data_loader)):
         if config.TRAIN.RANDOM_SAMPLER:
             samples = data[0].cuda(non_blocking=True)
             targets = data[1].cuda(non_blocking=True)

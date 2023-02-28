@@ -28,7 +28,7 @@ from optimizer import build_optimizer
 from logger import create_logger
 from utils import load_checkpoint, save_checkpoint, get_grad_norm, auto_resume_helper
 #from domain_train import classic_training,classic_test,classic_setting
-
+from tqdm import tqdm
 import pdb
 DEBUG = 0
 def main(config):
@@ -166,7 +166,7 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
     #     elif epoch ==config.TRAIN.SAMESUB_EPOCH:
     #         model.copy_unshared_para()
 
-    for idx, data in enumerate(zip(*data_loader)):
+    for idx, data in enumerate( tqdm( zip(*data_loader) ) ):
         samples=[]
         targets=[]
         domain_labels=torch.LongTensor(list(range(domain_num-1)))
