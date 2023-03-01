@@ -472,7 +472,7 @@ class SpecialDomainNet(MultipleDomainDataset):
                 dataset_val = DomainDataset('DomainNet',environments[i],self.dir,'val',transform_src_val)
                 self.datasets.append([dataset_train,dataset_val])
             else:
-                dataset_test = DomainDataset('DomainNet',environments[si],self.dir,'test',transform_tar)
+                dataset_test = DomainDataset('DomainNet',environments[i],self.dir,'test',transform_tar)
                 self.datasets.append(dataset_test)
                 
 class SVIRO(MultipleEnvironmentImageFolder):
