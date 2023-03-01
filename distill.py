@@ -230,7 +230,7 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
 
     #scaler = GradScaler()
 
-    for idx, data in enumerate(tqdm(data_loader)):
+    for idx, data in enumerate(data_loader):
         if config.TRAIN.RANDOM_SAMPLER:
             samples = data[0].cuda(non_blocking=True)
             targets = data[1].cuda(non_blocking=True)
