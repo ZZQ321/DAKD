@@ -2,7 +2,7 @@
 # Swin Transformer
 # Copyright (c) 2021 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ze Liu
+# Written by ZZQ
 # --------------------------------------------------------
 #test
 from copy import deepcopy
