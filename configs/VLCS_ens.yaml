@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: resnetbranches_nolsl_identical_path_ens_valmax_standaug_dist_standaug_noshu_nocen_0.05
+  NAME: res18_lambda
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:
