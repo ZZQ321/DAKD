@@ -166,7 +166,7 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
     #     elif epoch ==config.TRAIN.SAMESUB_EPOCH:
     #         model.copy_unshared_para()
 
-    for idx, data in enumerate(  zip(*data_loader)  ):
+    for idx, data in enumerate( zip(*data_loader) ):
         samples=[]
         targets=[]
         domain_labels=torch.LongTensor(list(range(domain_num-1)))
@@ -191,10 +191,12 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
         logits = logits_inv + logits_spe
         # domain_logits = torch.cat(domain_logits_list)
         targets =torch.cat(targets)
-        ce_loss = criterion(logits, targets.long())
+        loss_in = criterion(logits_inv,targets)
+        loss_spe = criterion(logits_spe,targets)
+        # ce_loss = criterion(logits, targets.long())
         # domain_loss = criterion_domain(domain_logits,domain_labels)
         orth_loss = torch.norm(sum(logits_spe*(logits_inv-logits_spe)))
-        loss = ce_loss  #+ config.TRAIN.ENSEM_LAMDA*orth_loss
+        loss = loss_in + loss_spe  #+ config.TRAIN.ENSEM_LAMDA*orth_loss
         
         optimizer.zero_grad()
         loss.backward()

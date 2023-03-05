@@ -135,22 +135,24 @@ class Distilation(object):
         if self.shared:
             with torch.no_grad():
                 x =[deepcopy(x) for _ in range(self.ensemble.branch_num)]
-                out = torch.stack(self.ensemble(x))
-                out = torch.sum(out,1)
+                out = torch.stack(self.ensemble(x))  #3*2*16*7
+                # out = torch.sum(out,1)
                 source_domain_num = len(out)
                 targets=[]
                 for index in range(source_domain_num):
                     targets.append(torch.softmax(out[index]/self.T,-1))
-            if domain_labels is not None:
+            if domain_labels is not None:   #bingo
                 targets = [targets[domain_labels[i]][i] for i in range(len(targets[0]))]
-                targets = torch.stack(targets).detach()
+                targets = torch.stack(targets).detach() #2*16*7
 
             else:
                 targets = (sum(targets)/source_domain_num).detach()
             if KL:
                 loss = kl_div(logits,targets)
-            else:
-                loss =  self.criterion(logits/self.T,targets)
+            else: #√
+                loss_inv = self.criterion(logits/self.T,targets[0])
+                loss_spe = self.criterion(logits/self.T,targets[1])
+                loss =  loss_inv + loss_spe 
             return loss
         else:
             with torch.no_grad():
