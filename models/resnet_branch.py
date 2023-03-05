@@ -218,6 +218,8 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, 1000)
+        self.map_inv = nn.Linear(512 * block.expansion,512 * block.expansion)
+        self.map_spe = nn.Linear(512 * block.expansion,512 * block.expansion)
         self.fc_inv =  nn.Linear(512 * block.expansion, num_classes)
         self.fc_spe =  nn.Linear(512 * block.expansion, num_classes)
         # if classifier == 'linear':
@@ -289,8 +291,10 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        x_inv = self.mul(x)
-        x_spe =x - x_inv
+        # x_inv = self.mul(x)
+        # x_spe =x - x_inv
+        x_inv = self.map_inv(x)
+        x_spe = self.map_spe(x)
         logit_inv = self.fc_inv(x_inv)
         logit_spe = self.fc_spe(x_spe)
 
