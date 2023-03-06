@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: res18_lossinv+lossspe
+  NAME: res18_lossinv+lossspe_fcmap
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:
