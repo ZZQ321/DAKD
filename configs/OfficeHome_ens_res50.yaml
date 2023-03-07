@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet50_Branches
-  NAME: resnet50branches_nolsl_identical_path_ens_valmin_trainpartial_standaug_dist_standaug_train_partial
+  NAME: res50_lossinv+lossspe_fcmap
   DROP_PATH_RATE: 0.5
   CLASSIFIER: 'linear'
 TRAIN:

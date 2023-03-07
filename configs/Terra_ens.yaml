@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: identi_ens_valmax_dist_lossmin_latest
+  NAME: res18_lossinv+lossspe_fcmap
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:

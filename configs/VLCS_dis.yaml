@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet18
-  NAME: resnetbranches_nolsl_identical_path_ens_valmax_standaug_dist_standaug_noshu_nocen_0.05
+  NAME: res18_lossinv+lossspe_fcmap
   ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: resnetbranches_nolsl_identical_path_ens_valmax_standaug_dist_standaug_noshu_nocen_0.05
+  ENSEM_NAME: res18_lossinv+lossspe_fcmap
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:

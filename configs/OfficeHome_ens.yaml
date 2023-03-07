@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_train_partial_nocen_noshuffle_0.15
+  NAME: res18_lossinv+lossspe_fcmap
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:
