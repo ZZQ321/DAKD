@@ -22,7 +22,7 @@ DATA :
   DATASET: 'TerraIncognita'
   SPLIT: 'indomain'
   SPLIT_RATE: 0.8
-  NUM_WORKERS : 1
+  # NUM_WORKERS : 1
   BATCH_SIZE: 16
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto

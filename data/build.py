@@ -19,7 +19,7 @@ from timm.data import create_transform
 from torch.utils.data.dataset import ConcatDataset
 from data import datasets
 from data.datasets import PACS, PACS_NOSPLIT,PACS_SPL_TR,PACS_SPL_VAL,CustomConcatDataset
-
+from data.fast_data_loader import FastDataLoader
 from .samplers import SubsetRandomSampler
 
 import pdb
@@ -65,10 +65,10 @@ def build_loader(config,target_idx):
         [[dataset_src_trs,dataset_src_vals],dataset_tar]=dataset.get_datasets()
 
     # dataset_src_vals= dataset_src_trs
-    dataloaders_src_tr= datasetsToloaders(dataset_src_trs,shuffle=True,drop_last=True,config=config)
+    dataloaders_src_tr= datasetsToloaders(dataset_src_trs,config.DATA.BATCH_SIZE,drop_last=True,config=config)
     ###note shuffle！
-    dataloaders_src_val = datasetsToloaders(dataset_src_vals,shuffle=False,drop_last=False,config=config)
-    dataloaders_tar = datasetsToloaders(dataset_tar,shuffle=False,drop_last=False,config=config)[0]
+    dataloaders_src_val = datasetsToloaders(dataset_src_vals,config.DATA.TEST_BATCH_SIZE,drop_last=False,config=config)
+    dataloaders_tar = datasetsToloaders(dataset_tar,config.DATA.TEST_BATCH_SIZE,drop_last=False,config=config)[0]
     num_steps_train = get_numsteps_from_loaders(dataloaders_src_tr)
     num_steps_val = get_numsteps_from_loaders(dataloaders_src_val)
     return  dataset_tar, dataloaders_src_tr, dataloaders_src_val,dataloaders_tar, num_steps_train,num_steps_val
@@ -97,11 +97,11 @@ def build_distil_loader(config,target_idx):
     dataset_train_sum = sum_datasets(dataset_src_trs,with_domain_label=True)
     dataset_val_sum = sum_datasets(dataset_src_vals,with_domain_label=True)
     if config.TRAIN.RANDOM_SAMPLER:
-        data_loader_train = datasetsToloaders(dataset_train_sum,shuffle=True,drop_last=True,config=config)
+        data_loader_train = datasetsToloaders(dataset_train_sum,config.DATA.BATCH_SIZE,drop_last=True,config=config)
     else:
-        data_loader_train= datasetsToloaders(dataset_src_trs,shuffle=True,drop_last=True,config=config)
-    data_loader_val = datasetsToloaders(dataset_val_sum,shuffle=True,drop_last=False,config=config)
-    data_loader_tar = datasetsToloaders(dataset_tar[0],shuffle=False,drop_last=False,config=config)
+        data_loader_train= datasetsToloaders(dataset_src_trs,config.DATA.BATCH_SIZE,drop_last=True,config=config)
+    data_loader_val = datasetsToloaders(dataset_val_sum,config.DATA.TEST_BATCH_SIZE,drop_last=False,config=config)
+    data_loader_tar = datasetsToloaders(dataset_tar[0],config.DATA.TEST_BATCH_SIZE,drop_last=False,config=config)
 
     return dataset_train_sum, dataset_val_sum, data_loader_train, data_loader_val,data_loader_tar
 
@@ -118,8 +118,8 @@ def build_analy_loader(config,target_idx):
     sou_datasets=dataset_all
     sou_dataset_agg = sum_datasets(sou_datasets,with_domain_label=True)
     # dataset_sum = sum_datasets(dataset_all)
-    tar_loader = datasetsToloaders(tar_dataset,shuffle=False,drop_last=False,config=config)
-    sou_loader = datasetsToloaders(sou_dataset_agg,shuffle=False,drop_last=False,config=config)
+    tar_loader = datasetsToloaders(tar_dataset,config.DATA.TEST_BATCH_SIZE,drop_last=False,config=config)
+    sou_loader = datasetsToloaders(sou_dataset_agg,config.DATA.BATCH_SIZE,drop_last=False,config=config)
 
     return sou_loader,tar_loader
 
@@ -134,26 +134,26 @@ def build_mixup_fn(config):
     return mixup_fn
 
 
-def datasetsToloaders(datasets,shuffle,drop_last,config):
+def datasetsToloaders(datasets,batchsize,drop_last,config):
     if  isinstance(datasets,list):
         data_loaders=[]
         for dataset in  datasets:
-            data_loader = torch.utils.data.DataLoader(
+            data_loader = FastDataLoader(
                 dataset,
-                batch_size=config.DATA.BATCH_SIZE,
-                shuffle=shuffle,
+                batch_size=batchsize,
+
                 num_workers=config.DATA.NUM_WORKERS,
-                pin_memory=config.DATA.PIN_MEMORY,
+
                 drop_last=drop_last,
             )
             data_loaders.append(data_loader)
     else :
-        data_loaders = torch.utils.data.DataLoader(
+        data_loaders = FastDataLoader(
                 datasets,
-                batch_size=config.DATA.BATCH_SIZE,
-                shuffle=shuffle,
+                batch_size=batchsize,
+
                 num_workers=config.DATA.NUM_WORKERS,
-                pin_memory=config.DATA.PIN_MEMORY,
+
                 drop_last=drop_last,
             )
     

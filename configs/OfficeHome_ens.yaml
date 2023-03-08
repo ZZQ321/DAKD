@@ -23,7 +23,7 @@ DATA :
   SPLIT: 'indomain'
   SPLIT_RATE: 0.9
   BATCH_SIZE: 16
-  NUM_WORKERS : 1
+  # NUM_WORKERS : 1
 AUG: 
   AUTO_AUGMENT: 'standard'
   

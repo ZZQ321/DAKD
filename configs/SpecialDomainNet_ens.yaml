@@ -23,7 +23,7 @@ DATA :
   SPLIT: 'special'  #not work
   SPLIT_RATE : 0.9  #not work
   BATCH_SIZE: 16
-  NUM_WORKERS : 1
+  # NUM_WORKERS : 1
 AUG: 
   AUTO_AUGMENT: 'standard' 
   
