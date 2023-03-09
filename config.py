@@ -202,6 +202,7 @@ _C.DISTILL=CN()
 #gamma*cata_loss + (1-gamma)distil_loss
 _C.DISTILL.GAMMA = 0.167
 _C.DISTILL.IDENTICAL_LOGIT =False
+_C.DISTILL.TAR_TYPE = 'inv+spe'
 
 
 def _update_config_from_file(config, cfg_file):
@@ -269,6 +270,8 @@ def update_config(config, args):
         config.AUG.AUGMENT = args.aug
     if args.seed:
         config.seed = args.seed
+    if args.dis_tar_type:
+        config.DISTILL.TAR_TYPE = args.dis_tar_type
     if args.dataset:
         if  args.dataset in vars(datasets):
             config.DATA.DATASET= args.dataset
@@ -347,6 +350,7 @@ def parse_option():
     parser.add_argument('--classifier',type=str,help='')
     parser.add_argument('--aug',type=str,help='')
     parser.add_argument('--seed',type=int,help='')
+    parser.add_argument('--dis_tar_type',type=str,help='')
 
 
     args, unparsed = parser.parse_known_args()

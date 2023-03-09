@@ -131,12 +131,17 @@ class Distilation(object):
         self.ensemble.eval()
         self.shared = shared #multi-head
 
-    def get_loss(self, x, logits,KL=False,domain_labels=None):
+    def get_loss(self, x, logits,KL=False,domain_labels=None,logit_type='inv+spe'):
         if self.shared:
             with torch.no_grad():
                 x =[deepcopy(x) for _ in range(self.ensemble.branch_num)]
                 out = torch.stack(self.ensemble(x))
-                out = torch.sum(out,1)
+                if logit_type == 'inv+spe':
+                    out = torch.sum(out,1)
+                elif logit_type == 'inv':
+                    out = out[:,0]
+                elif logit_type == 'spe':
+                    out = out[:,1]
                 source_domain_num = len(out)
                 targets=[]
                 for index in range(source_domain_num):
