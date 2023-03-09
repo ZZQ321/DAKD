@@ -136,13 +136,14 @@ class Distilation(object):
             with torch.no_grad():
                 x =[deepcopy(x) for _ in range(self.ensemble.branch_num)]
                 out = torch.stack(self.ensemble(x))
+                source_domain_num = len(out)
                 if logit_type == 'inv+spe':
-                    out = torch.sum(out,1)
+                    inv_mean = out[:,0].mean(dim=0)
+                    out = out[:,1] + inv_mean.repeat(source_domain_num,1,1)
                 elif logit_type == 'inv':
-                    out = out[:,0]
+                    out = out[:,0].mean(dim=0).repeat(source_domain_num,1,1)
                 elif logit_type == 'spe':
                     out = out[:,1]
-                source_domain_num = len(out)
                 targets=[]
                 for index in range(source_domain_num):
                     targets.append(torch.softmax(out[index]/self.T,-1))

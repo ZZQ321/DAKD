@@ -41,7 +41,7 @@ def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
 class Mulvector(nn.Module):
     def __init__(self,vec_dim):
         super(Mulvector, self).__init__()
-        self.lamda=nn.Parameter(torch.ones(vec_dim))
+        self.lamda=nn.Parameter(torch.rand(vec_dim))
 
     def forward(self, x):
         #self.lamda = self.lamda/torch.norm(self.lamda,p=2)
