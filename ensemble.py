@@ -30,7 +30,7 @@ from utils import load_checkpoint, save_checkpoint, get_grad_norm, auto_resume_h
 #from domain_train import classic_training,classic_test,classic_setting
 from tqdm import tqdm
 import pdb
-DEBUG = 0
+DEBUG = 1
 def main(config):
     writer = SummaryWriter(config.OUTPUT)#,config.DATA.DOMAINS[target_idx]))
     
@@ -178,24 +178,32 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
 
         # if mixup_fn is not None:
         #     samples, targets = mixup_fn(samples, targets)
-        out = model(samples)
+        out = model(samples,rtn_feat=True)
         logits_inv = []
         logits_spe = []
+        feat_inv = []
+        feat_spe =[]
         # domain_logits_list= []
         for index in range(domain_num-1):
-            logits_inv.append(out[index][0])
-            logits_spe.append(out[index][1])
+            feat_inv.append(out[index][0][0])
+            feat_spe.append(out[index][0][1])
+
+            logits_inv.append(out[index][1][0])
+            logits_spe.append(out[index][1][1])
             # domain_logits_list.append(out[index][2])
         logits_inv = torch.cat(logits_inv)
         logits_spe = torch.cat(logits_spe)
+        feat_inv = torch.cat(feat_inv)
+        feat_spe = torch.cat(feat_spe)
+
         logits = logits_inv + logits_spe
         # domain_logits = torch.cat(domain_logits_list)
         targets =torch.cat(targets)
         ce_loss = criterion(logits, targets.long())
         # domain_loss = criterion_domain(domain_logits,domain_labels)
-        orth_loss = torch.norm(sum(logits_spe*(logits_inv-logits_spe)))
-        loss = ce_loss  #+ config.TRAIN.ENSEM_LAMDA*orth_loss
-        
+        # orth_loss = torch.norm(sum(logits_spe*(logits_inv-logits_spe)))
+        orth_loss = domain_aware_contrastive_loss(feat_inv,targets,domain_labels)
+        loss = ce_loss + config.ENS.LADA_CTRA * orth_loss 
         optimizer.zero_grad()
         loss.backward()
         if config.TRAIN.CLIP_GRAD:
@@ -207,7 +215,7 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
 
         torch.cuda.synchronize()
 
-        loss_meter.update(loss.item(), targets.size(0))
+        loss_meter.update(ce_loss.item(), targets.size(0))
         # loss_d_meter.update(domain_loss.item(),targets.size(0))
         loss_o_meter.update(orth_loss.item(),targets.size(0))
         norm_meter.update(grad_norm)
@@ -223,7 +231,7 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
                     f'Train: [{epoch}/{config.TRAIN.EPOCHS}][{idx}/{num_steps}]\t'
                     f'eta {datetime.timedelta(seconds=int(etas))} lr {lr:.6f}\t'
                     f'time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
-                    f'loss {loss_meter.val:.4f} ({loss_meter.avg:.4f})\t'
+                    f'loss_ce {loss_meter.val:.4f} ({loss_meter.avg:.4f})\t'
                     # f'Loss_d {loss_d_meter.val:.4f} ({loss_d_meter.avg:.4f})\t'
                     f'Loss_orth {loss_o_meter.val:.4f} ({loss_o_meter.avg:.4f})\t'
                     f'grad_norm {norm_meter.val:.4f} ({norm_meter.avg:.4f})\t'             
@@ -235,6 +243,57 @@ def train_one_epoch(config, model, criterion,criterion_domain, data_loader, opti
     logger.info(f"EPOCH {epoch} training takes {datetime.timedelta(seconds=int(epoch_time))}")
 
 
+def domain_aware_contrastive_loss(f, label, domain_label, tau=0.05):
+    N, T = f.shape
+
+    # Concat N originals and N stylized ones -> 2N samples
+    f_list = f.clone() #
+
+    # Reshape labels N -> N * 1
+    cls_label = label.contiguous().view(-1, 1)
+    # N * N matrix where samples of same class label with an anchor are marked as positive
+    cls_mask = torch.eq(cls_label, cls_label.T).float().cuda()
+
+    # Reshape domain labels N -> N * 1
+    domain_label = domain_label.contiguous().view(-1, 1)
+    # N * N matrix where samples of same domain label with an anchor are marked as positive
+    domain_mask = torch.eq(domain_label, domain_label.T).float().cuda()
+
+    # cls_mask = cls_mask.repeat(2, 2)
+    # domain_mask = domain_mask.repeat(2, 2)
+
+    # 2N X 2N matrix where diagonal elements are 0, otherwise 1
+    logits_mask = torch.scatter(
+        torch.ones_like(cls_mask),
+        1,
+        torch.arange(N).view(-1, 1).cuda(),
+        0
+    )
+
+    label_list = logits_mask * cls_mask
+
+    # Normalize feature vectors
+    f_list = f_list / torch.norm(f_list, p=2, dim=1).unsqueeze(1)
+
+    # 2N X 2N similarity matrix
+    sim_matrix = torch.matmul(f_list, torch.transpose(f_list, 0, 1)) / tau
+
+    # exp
+    sim_matrix = torch.exp(sim_matrix)
+
+    # set diagonal elements to zero
+    sim_matrix = sim_matrix.clone().fill_diagonal_(0)
+    # exclude cases ( different class, different domain )
+    logits_mask = logits_mask * (1 - ((1 - cls_mask) * (1 - domain_mask)))
+
+    # / sum()
+    scores = (sim_matrix * label_list).sum(dim=0) / (sim_matrix * logits_mask).sum(dim=0)
+    scores =scores[scores.nonzero().view(-1)] #为啥会有0呢，可能没有样本
+    loss_contrast = - torch.log(scores).mean()
+    return loss_contrast
+        
+
+    
 
 @torch.no_grad()
 def validate(config, data_loader, model,num_steps_val,logger):
@@ -279,7 +338,7 @@ def validate(config, data_loader, model,num_steps_val,logger):
         #single domain acc
         acc_sig = [0.0 for _ in range(domain_num-1)]
         for souce_idx in range(domain_num -1):
-            acc_sig[souce_idx] = accuracy(out[souce_idx][1],targets[souce_idx])[0].item()
+            acc_sig[souce_idx] = accuracy(out[souce_idx].sum(dim=0),targets[souce_idx])[0].item()
             acc_sig_meter[souce_idx].update(acc_sig[souce_idx], targets[souce_idx].size(0))
 
         #for multi-domain acc    

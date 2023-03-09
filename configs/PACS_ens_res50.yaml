@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet50_Branches
-  NAME: res50_lambda
+  NAME: res50_lambda_ctra
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:

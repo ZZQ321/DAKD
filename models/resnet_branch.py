@@ -272,7 +272,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _forward_impl(self, x: Tensor) -> Tensor:
+    def _forward_impl(self, x: Tensor,rtn_feat=False) -> Tensor:
         # See note [TorchScript super()]
         x = self.conv1(x)
         x = self.bn1(x)
@@ -293,11 +293,13 @@ class ResNet(nn.Module):
         x_spe =x - x_inv
         logit_inv = self.fc_inv(x_inv)
         logit_spe = self.fc_spe(x_spe)
+        if rtn_feat:
+            return torch.stack([x_inv,x_spe]) , torch.stack([logit_inv, logit_spe])
+        else:
+            return torch.stack([logit_inv, logit_spe])
 
-        return torch.stack([logit_inv, logit_spe])
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward_impl(x)
+    def forward(self, x: Tensor, rtn_feat=False) -> Tensor:
+        return self._forward_impl(x,rtn_feat)
 
     def unistyle(self,x,eps:Tensor) ->Tensor: 
         x_mean = x.mean(dim=-1).mean(dim=-1).detach()
@@ -364,10 +366,10 @@ class PartialSharedResNet(nn.Module):
 
         self.models = nn.Sequential(*models)
 
-    def forward(self,samples):
+    def forward(self,samples,rtn_feat=False):
         outs=[]
         for idx,x in enumerate(samples):
-            out = self.models[idx](x)
+            out = self.models[idx](x,rtn_feat)
             outs.append(out)
         return outs
     

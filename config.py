@@ -203,6 +203,9 @@ _C.DISTILL=CN()
 _C.DISTILL.GAMMA = 0.167
 _C.DISTILL.IDENTICAL_LOGIT =False
 
+_C.ENS=CN()
+_C.ENS.LADA_CTRA = 0.3
+
 
 def _update_config_from_file(config, cfg_file):
     config.defrost()
@@ -269,6 +272,8 @@ def update_config(config, args):
         config.AUG.AUGMENT = args.aug
     if args.seed:
         config.seed = args.seed
+    if args.ens_lada_ctra:
+        config.ENS.LADA_CTRA = args.ens_lada_ctra
     if args.dataset:
         if  args.dataset in vars(datasets):
             config.DATA.DATASET= args.dataset
@@ -347,6 +352,7 @@ def parse_option():
     parser.add_argument('--classifier',type=str,help='')
     parser.add_argument('--aug',type=str,help='')
     parser.add_argument('--seed',type=int,help='')
+    parser.add_argument('--ens_lada_ctra',type=float,help='')
 
 
     args, unparsed = parser.parse_known_args()
