@@ -131,28 +131,29 @@ class Distilation(object):
         self.ensemble.eval()
         self.shared = shared #multi-head
 
-    def get_loss(self, x, logits,KL=False,domain_labels=None):
+    def get_loss(self, x, logits,KL=False,domain_labels=None,logit_type='inv+spe'):
         if self.shared:
             with torch.no_grad():
                 x =[deepcopy(x) for _ in range(self.ensemble.branch_num)]
                 out = torch.stack(self.ensemble(x))  #3*2*16*7
-                # out = torch.sum(out,1)
                 source_domain_num = len(out)
-                targets=[]
-                for index in range(source_domain_num):
-                    targets.append(torch.softmax(out[index]/self.T,-1))
-            if domain_labels is not None:   #bingo
-                targets = [targets[domain_labels[i]][i] for i in range(len(targets[0]))]
-                targets = torch.stack(targets).detach() #2*16*7
-
-            else:
-                targets = (sum(targets)/source_domain_num).detach()
+                inv_targets = out[:,0].mean(dim=0)
+                spe_targets = out[:,1]
+                spe_targets = spe_targets[domain_labels]
+                inv_targets = torch.softmax(inv_targets/self.T,-1).detach()
+                spe_targets = torch.softmax(spe_targets/self.T,-1).detach()   #16 * 7
             if KL:
                 loss = kl_div(logits,targets)
             else: #√
-                loss_inv = self.criterion(logits/self.T,targets[0])
-                loss_spe = self.criterion(logits/self.T,targets[1])
-                loss =  loss_inv + loss_spe 
+                loss_inv = self.criterion(logits/self.T,inv_targets)
+                loss_spe = self.criterion(logits/self.T,spe_targets)
+                if logit_type == 'inv+spe':
+                    loss =  loss_inv + loss_spe 
+                elif logit_type == 'inv':
+                    loss = loss_inv
+                elif logit_type == 'spe':
+                    loss = loss_spe
+                
             return loss
         else:
             with torch.no_grad():

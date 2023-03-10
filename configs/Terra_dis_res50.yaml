@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet50
-  NAME: res50branches_nomul_nolsl_identical_path_ens_valmax_trainpartial_standaug_dist_standaug_train_partial_0.25
+  NAME: res50_lambda
   ENSEM_TYPE: ResNet50_Branches
-  ENSEM_NAME: res50branches_nomul_nolsl_identical_path_ens_valmax_trainpartial_standaug_dist_standaug_train_partial_0.25
+  ENSEM_NAME: res50_lambda
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.5
 TRAIN:

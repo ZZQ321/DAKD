@@ -2,10 +2,10 @@
 # Swin Transformer
 # Copyright (c) 2021 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ze Liu
+# Written by ZZQ
 # --------------------------------------------------------
 
-from copy import deepcopy
+from copy import deepcopy 
 import os
 import time
 import argparse
