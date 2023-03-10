@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: res18_lambda
+  NAME: res18_lossinv+lossspe_randmul_inv_mean
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:

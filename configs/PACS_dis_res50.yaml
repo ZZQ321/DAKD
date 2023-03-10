@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet50
-  NAME: res50_lossinv+lossspe
+  NAME: res18_lossinv+lossspe_randmul_inv_mean
   ENSEM_TYPE: ResNet50_Branches
-  ENSEM_NAME: res50_lossinv+lossspe
+  ENSEM_NAME: res18_lossinv+lossspe_randmul_inv_mean
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:
