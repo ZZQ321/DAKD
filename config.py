@@ -27,7 +27,7 @@ _C.DATA = CN()
 # Batch size for a single GPU, could be overwritten by command line argument
 _C.DATA.BATCH_SIZE = 128
 # Path to dataset, could be overwritten by command line argument
-_C.DATA.DATA_PATH = '/data/path'
+_C.DATA.DATA_PATH = '/home/zzq/data'
 # _C.DATA.NO_SPLIT_PATH = '~/data'
 # _C.DATA.SPLIT = True
 #Dataset domains,could be overwritten by yaml
