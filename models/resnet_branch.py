@@ -46,7 +46,7 @@ class Mulvector(nn.Module):
     def forward(self, x):
         #self.lamda = self.lamda/torch.norm(self.lamda,p=2)
         #self.lamda = torch.argmax(self.lamda,0)
-        x = x*self.lamda
+        # x = x*self.lamda
         return x
 class MLP(nn.Module):
     def __init__(self,input_dim,output_dim):
@@ -292,7 +292,7 @@ class ResNet(nn.Module):
         x_inv = self.mul(x)
         x_spe =x - x_inv
         logit_inv = self.fc_inv(x_inv)
-        logit_spe = self.fc_spe(x_spe)
+        logit_spe = logit_inv - logit_inv
 
         return torch.stack([logit_inv, logit_spe])
 
