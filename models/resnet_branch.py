@@ -289,10 +289,10 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        x_inv = self.mul(x)
+        x_inv = x
         x_spe =x - x_inv
         logit_inv = self.fc_inv(x_inv)
-        logit_spe = self.fc_spe(x_spe)
+        logit_spe = logit_inv -logit_inv
         if rtn_feat:
             return torch.stack([x_inv,x_spe]) , torch.stack([logit_inv, logit_spe])
         else:
