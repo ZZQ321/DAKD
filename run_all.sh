@@ -1,4 +1,4 @@
-for dataset in OfficeHome VLCS Terra PACS
+for dataset in PACS OfficeHome VLCS Terra 
 do
     python ensemble.py --cfg configs/${dataset}_ens.yaml
     for gamma in 1.0
