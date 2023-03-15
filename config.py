@@ -272,7 +272,7 @@ def update_config(config, args):
         config.AUG.AUGMENT = args.aug
     if args.seed:
         config.seed = args.seed
-    if args.ens_lada_ctra:
+    if args.ens_lada_ctra is not None:
         config.ENS.LADA_CTRA = args.ens_lada_ctra
     if args.dataset:
         if  args.dataset in vars(datasets):
