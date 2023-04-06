@@ -325,9 +325,9 @@ class ResNet(nn.Module):
         
         feature_vec=x
         
-        x = self.classifier(x)
+        # x = self.classifier(x)
 
-        return x, feature_vec
+        return  feature_vec
 
 class PartialSharedResNet(nn.Module):
     def __init__(self,model,branch_num,shared_keys):
@@ -370,7 +370,14 @@ class PartialSharedResNet(nn.Module):
             out = self.models[idx](x)
             outs.append(out)
         return outs
-    
+
+    def extract_features(self,samples):
+        outs=[]
+        for idx,x in enumerate(samples):
+            out = self.models[idx].extract_features(x)
+            outs.append(out)
+        return outs
+
     def change_layer_to_shared(self,shared_layers_names,shared_layers,model):
         named_modules= [name for name,layer in model.named_modules()]
         for name in named_modules:

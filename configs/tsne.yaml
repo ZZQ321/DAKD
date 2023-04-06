@@ -1,0 +1,32 @@
+MODEL:
+  TYPE: ResNet18        # DISTILL
+  # NAME: DeepAll_vallia   # DISTILL
+  NAME: res18_real_no_mul
+  DROP_PATH_RATE: 0.5
+  ENSEM_TYPE: ResNet18_Branches
+  # ENSEM_NAME: DeepAll_vallia
+  ENSEM_NAME: res18_real_no_mul
+  ENSEMBLE_TAG: 'default'
+  # ENSEMBLE_TAG: 'default'
+  DISTILL_TAG: 'noaug' #zzq slby_hpme'best_config_gray_crop_0.1_r0'
+  # DISTILL_TAG: 'default' #zzq slby_hpme'best_config_gray_crop_0.1_r0'
+  CLASSIFIER: 'linear'
+TRAIN:
+  OPTIMIZER:
+    NAME: 'sgd'
+  LR_SCHEDULER:
+    NAME: 'cosine'
+  BASE_LR: 1e-3
+  WEIGHT_DECAY: 5e-2
+  MIN_LR: 1e-4
+  EPOCHS: 60
+  CLIP_GRAD: 5.0    #waited to make sure
+DATA :
+  NUM_WORKERS: 1
+  DATASET: 'PACS'
+  SPLIT: 'indomain'
+  BATCH_SIZE: 64
+
+  
+
+

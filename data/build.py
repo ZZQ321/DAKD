@@ -106,6 +106,19 @@ def build_distil_loader(config,target_idx):
     return dataset_train_sum, dataset_val_sum, data_loader_train, data_loader_val,data_loader_tar
 
 
+def build_pad_loader(config):
+    
+    hparams={'split':'indomain','split_rate':0.5,'aug':'noaug'}      #spetial   
+    # [[train1,val1],[train2,val2],target,[train3,val3]]  and position of target is corresponding to target domian idx
+    dataset = vars(datasets)[config.DATA.DATASET](config.DATA.DATA_PATH,
+        [], hparams)
+    [[sou_train,sou_val],_] = dataset.get_datasets()
+    train_loader = datasetsToloaders(sou_train,shuffle=True,drop_last=True,config=config)
+    val_loader = datasetsToloaders(sou_val,shuffle=True,drop_last=True,config=config)
+    return train_loader,val_loader
+
+
+
 def build_analy_loader(config,target_idx):
     
     hparams={'split':config.DATA.SPLIT,'split_rate':config.DATA.SPLIT_RATE,'aug':config.AUG.AUTO_AUGMENT}      #spetial   

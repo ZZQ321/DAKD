@@ -7,8 +7,10 @@ from sklearn import manifold, datasets
 import seaborn as sns
 import pandas as pd
 sns.set(rc={'figure.figsize':(11.7,8.27)})
+# sns.set(rc={'figure.figsize':(23.4,16.54)})
 sns.set_style("white")
-palette_dm = sns.color_palette("bright", 3)
+palette_sou_dm = sns.color_palette("bright", 3)
+palette_dm = sns.color_palette("bright", 4)
 palette_cata = sns.color_palette("bright", 7)
 '''t-SNE'''
 
@@ -19,30 +21,81 @@ except ImportError:
     amp = None
 import pdb
 
-def tsne_plot(sou_X,sou_y,tar_X,tar_y,target_idx):
+def tsne_plot_togeter(model_name,sou_X,sou_cata,sou_db,sou_exp,tar_X,tar_cata,tar_exp,target_idx):
+    os.makedirs(model_name,exist_ok=True)
     tsne = manifold.TSNE(n_components=2, init='pca', random_state=501#, n_iter=5000,n_iter_without_progress=1500
                         )
     sou_len = len(sou_X)
     tar_len = len(tar_X)
+
+    soutar_cata = torch.cat((sou_cata,tar_cata))
+
+    tar_db_label = torch.LongTensor([target_idx]).repeat(tar_len)
+    sou_db_label = torch.where(sou_db<target_idx,sou_db,sou_db+1)
+    sou_tar_db_label = torch.cat((sou_db_label,tar_db_label),0)
+    
+    if sou_exp is not None:
+        sou_exp = torch.where(sou_exp<target_idx,sou_exp,sou_exp+1)
+        tar_exp = torch.where(tar_exp<target_idx,tar_exp,tar_exp+1)
+        sou_tar_exp = torch.cat((sou_exp,tar_exp),0)
+        expert=['A','C','P','S']
+        sou_exp_names = [expert[sou_exp[i]] for i in range(len(sou_exp))]
+        tar_exp_names = [expert[tar_exp[i]] for i in range(len(tar_exp))]
+        sou_tar_exp_names = sou_exp_names + tar_exp_names
+    else:
+        sou_exp_names = None
+        tar_exp_names = None
+        sou_tar_exp_names = None
     X = torch.cat((sou_X,tar_X),0)
+    # X = torch.nn.functional.normalize(X,dim=-1)
+    print(torch.where(torch.isinf(X) | torch.isnan(X),1,0).sum().sum())
     X_tsne = tsne.fit_transform(X)
+  
     cata=['Dog','Elephant','Giraffe','Guitar','Horse','House' ,'Person']
     domain=['artpairing','carton','photo','sketch']
+    
     # data = pd.DataFrame({'X': X, 'y': y})
     # y=torch.LongTensor(y)
-    
-    db_label = [domain[sou_y[i]] for i in range(len(sou_y))]
-    sns.scatterplot(X_tsne[:sou_len,0], X_tsne[:sou_len,1], hue=db_label, legend='full', palette=palette_dm)  
+
+# source domain
+#   db    
+    sou_db_label_names = [domain[sou_db_label[i]] for i in range(len(sou_db_label))]
+    sns.scatterplot(X_tsne[:sou_len,0], X_tsne[:sou_len,1], hue=sou_db_label_names, legend='full', palette=palette_sou_dm,style=sou_exp_names)  
     plt.show()
     # path = os.path.join(save_path,'tsne.png')
-    plt.savefig(f'dakd_tsne{target_idx}_sou.png')#, bbox_inches='tight')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_sou_db.png')#, bbox_inches='tight')
+    plt.cla()
+#   cata    
+    sou_cata_names = [cata[sou_cata[i]] for i in range(len(sou_cata))]
+    sns.scatterplot(X_tsne[:sou_len,0], X_tsne[:sou_len,1], hue=sou_cata_names, legend='full', palette=palette_cata,style=sou_exp_names)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_sou_cata.png')#, bbox_inches='tight')
     plt.cla()
 
-    tar_label = [cata[tar_y[i]] for i in range(len(tar_y))]
-    sns.scatterplot(X_tsne[sou_len:,0], X_tsne[sou_len:,1], hue=tar_label, legend='full', palette=palette_cata)  
+
+# all domain
+#db
+    soutar_db_label_names = [domain[sou_tar_db_label[i]] for i in range(len(sou_tar_db_label))]
+    sns.scatterplot(X_tsne[:,0], X_tsne[:,1], hue=soutar_db_label_names, legend='auto', palette=palette_dm,style=sou_tar_exp_names)  
     plt.show()
     # path = os.path.join(save_path,'tsne.png')
-    plt.savefig(f'dakd_tsne{target_idx}_tar.png')#, bbox_inches='tight')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_soutar_db.png')#, bbox_inches='tight')
+    plt.cla()
+#cata
+    soutar_cata_names = [cata[soutar_cata[i]] for i in range(len(soutar_cata))]
+    sns.scatterplot(X_tsne[:,0], X_tsne[:,1], hue=soutar_cata_names, legend='auto', palette=palette_cata,style=sou_tar_exp_names)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_soutar_cata.png')#, bbox_inches='tight')
+    plt.cla()
+
+#target doamin
+    tar_label = [cata[tar_cata[i]] for i in range(len(tar_cata))]
+    sns.scatterplot(X_tsne[sou_len:,0], X_tsne[sou_len:,1], hue=tar_label, legend='auto', palette=palette_cata)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_tar_cata.png')#, bbox_inches='tight')
     plt.cla()
 
 
@@ -58,6 +111,88 @@ def tsne_plot(sou_X,sou_y,tar_X,tar_y,target_idx):
     # plt.xticks([])
     # plt.yticks([])
     # plt.show()
+
+def tsne_plot_separate(model_name,sou_X,sou_cata,sou_db,sou_exp,tar_X,tar_cata,tar_exp,target_idx):
+    os.makedirs(model_name,exist_ok=True)
+    tsne_sou = manifold.TSNE(n_components=2, init='pca', random_state=501#, n_iter=5000,n_iter_without_progress=1500
+                        )
+    tsne_tar = manifold.TSNE(n_components=2, init='pca', random_state=501#, n_iter=5000,n_iter_without_progress=1500
+                        )
+    sou_len = len(sou_X)
+    tar_len = len(tar_X)
+
+    soutar_cata = torch.cat((sou_cata,tar_cata))
+
+    tar_db_label = torch.LongTensor([target_idx]).repeat(tar_len)
+    sou_db_label = torch.where(sou_db<target_idx,sou_db,sou_db+1)
+    sou_tar_db_label = torch.cat((sou_db_label,tar_db_label),0)
+    
+    if sou_exp is not None:
+        sou_exp = torch.where(sou_exp<target_idx,sou_exp,sou_exp+1)
+        tar_exp = torch.where(tar_exp<target_idx,tar_exp,tar_exp+1)
+        sou_tar_exp = torch.cat((sou_exp,tar_exp),0)
+        expert=['A','C','P','S']
+        sou_exp_names = [expert[sou_exp[i]] for i in range(len(sou_exp))]
+        tar_exp_names = [expert[tar_exp[i]] for i in range(len(tar_exp))]
+        sou_tar_exp_names = sou_exp_names + tar_exp_names
+    else:
+        sou_exp_names = None
+        tar_exp_names = None
+        sou_tar_exp_names = None
+    # X = torch.cat((sou_X,tar_X),0)
+    # X = torch.nn.functional.normalize(X,dim=-1)
+    X_sou_tsne= tsne_sou.fit_transform(sou_X)
+    X_tar_tsne= tsne_sou.fit_transform(tar_X)
+    # print(torch.where(torch.isinf(X) | torch.isnan(X),1,0).sum().sum())
+
+  
+    cata=['Dog','Elephant','Giraffe','Guitar','Horse','House' ,'Person']
+    domain=['art painting','cartoon','photo','sketch']
+    
+    # data = pd.DataFrame({'X': X, 'y': y})
+    # y=torch.LongTensor(y)
+
+# source domain
+#   db    
+    sou_db_label_names = [domain[sou_db_label[i]] for i in range(len(sou_db_label))]
+    sns.scatterplot(X_sou_tsne[:,0], X_sou_tsne[:,1], hue=sou_db_label_names, legend='full', palette=palette_sou_dm,style=sou_exp_names)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_sou_db.png')#, bbox_inches='tight')
+    plt.cla()
+#   cata    
+    sou_cata_names = [cata[sou_cata[i]] for i in range(len(sou_cata))]
+    sns.scatterplot(X_sou_tsne[:,0], X_sou_tsne[:,1], hue=sou_cata_names, legend='full', palette=palette_cata,style=sou_exp_names)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_sou_cata.png')#, bbox_inches='tight')
+    plt.cla()
+
+
+
+#target doamin
+    tar_label = [cata[tar_cata[i]] for i in range(len(tar_cata))]
+    sns.scatterplot(X_tar_tsne[:,0], X_tar_tsne[:,1], hue=tar_label, legend='auto', palette=palette_cata)  
+    plt.show()
+    # path = os.path.join(save_path,'tsne.png')
+    plt.savefig(model_name + f'/dist_tsne{target_idx}_tar_cata.png')#, bbox_inches='tight')
+    plt.cla()
+
+
+    # print("Org data dimension is {}. Embedded data dimension is {}".format(X.shape[-1], X_tsne.shape[-1]))
+    
+    # '''嵌入空间可视化'''
+    # x_min, x_max = X_tsne.min(0), X_tsne.max(0)
+    # X_norm = (X_tsne - x_min) / (x_max - x_min)  # 归一化
+    # plt.figure(figsize=(8, 8))
+    # for i in range(X_norm.shape[0]):
+    #     plt.text(X_norm[i, 0], X_norm[i, 1], str(y[i]), color=plt.cm.Set1(y[i]), 
+    #             fontdict={'weight': 'bold', 'size': 9})
+    # plt.xticks([])
+    # plt.yticks([])
+    # plt.show()
+
+
 
 def load_checkpoint(config, model, optimizer, lr_scheduler, logger):
     logger.info(f"==============> Resuming form {config.MODEL.RESUME}....................")

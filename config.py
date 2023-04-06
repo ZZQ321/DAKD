@@ -261,7 +261,7 @@ def update_config(config, args):
     if args.samesub_epoch:  
         config.TRAIN.SAMESUB_EPOCH =args.samesub_epoch 
     if args.shared_keys:
-        config.MODEL.SHARED_KEYS=  args.shared_keys
+        config.MODEL.SHARED_KEYS=  args.shared_keys.split('#')
     if args.classifier:
         config.MODEL.CLASSIFIER = args.classifier
     if args.model_select:
@@ -272,6 +272,11 @@ def update_config(config, args):
         config.seed = args.seed
     if args.dis_tar_type:
         config.DISTILL.TAR_TYPE = args.dis_tar_type
+    if args.distill:
+        if args.distill == 'specific':
+            config.DISTILL.IDENTICAL_LOGIT = True
+        elif args.distill == 'avg':
+            config.DISTILL.IDENTICAL_LOGIT = False
     if args.dataset:
         if  args.dataset in vars(datasets):
             config.DATA.DATASET= args.dataset
@@ -346,11 +351,13 @@ def parse_option():
     parser.add_argument('--dis_tag',type=str,help='')
     parser.add_argument('--model_select',type=str,help='')
     parser.add_argument('--ens_lamda',type=float,help='gamma of loss')
-    parser.add_argument('--shared_keys',nargs='+',help='')
+    parser.add_argument('--shared_keys',type=str,help='')
     parser.add_argument('--classifier',type=str,help='')
     parser.add_argument('--aug',type=str,help='')
+    parser.add_argument('--distill',type=str,help='')
     parser.add_argument('--seed',type=int,help='')
-    parser.add_argument('--dis_tar_type',type=str,help='')
+    parser.add_argument('--dis_tar_type',type=str,help='') 
+    parser.add_argument('--algorithm',type=str,help='')
 
 
     args, unparsed = parser.parse_known_args()

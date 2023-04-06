@@ -21,9 +21,9 @@ TRAIN:
   MODEL_SELECTION: 'lossacc' #valacc
 DATA :
   DATASET: 'PACS'
-  SPLIT: 'special'
-  SPLIT_RATE : 0.7
-  BATCH_SIZE: 16
+  SPLIT: 'indomain'
+  SPLIT_RATE : 0.8
+  BATCH_SIZE: 64
 DISTILL:
   GAMMA: 1.0
   IDENTICAL_LOGIT: True

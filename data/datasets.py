@@ -415,7 +415,7 @@ class PACS(MultipleEnvironmentImageFolder):
     NUM_CLASSES = 7
     # ENVIRONMENTS = ['photo','art_painting' ,'cartoon' ,'sketch']
     def __init__(self, root, test_envs, hparams):
-        self.dir = os.path.join(root, "pacs_official_split/")
+        self.dir = os.path.join(root, "PACS/")
         super().__init__(self.dir, test_envs, hparams)
 
 class PACS_NOSPLIT(MultipleEnvironmentImageFolder):
