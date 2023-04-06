@@ -4,7 +4,6 @@ pretrained/*.pth
 **/__pycache__
 output*
 test.py
-*.sh
 .vscode
 !domainbed.sh
 !digitsdg.sh

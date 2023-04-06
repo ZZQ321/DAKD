@@ -1,0 +1,1 @@
+python pad_st.py --cfg configs/PACS_dis.yaml --dis_tag noaug --algorithm $1  >> $1_dakd_pad_st.txt
