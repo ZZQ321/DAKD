@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: res18_real_nomul
+  NAME: res18_lambda
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:
@@ -19,8 +19,8 @@ TRAIN:
   T: 5.0
   MODEL_SELECTION: 'valacc' #valacc
 DATA :
-  DATASET: 'OfficeHome'
-  SPLIT: 'indomain'
+  DATASET: 'SpecialOfficeHome'
+  SPLIT: 'special'
   SPLIT_RATE: 0.9
   BATCH_SIZE: 16
   NUM_WORKERS : 1
