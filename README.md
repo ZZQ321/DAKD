@@ -11,18 +11,22 @@ _C.DATA.DATA_PATH = '/data/path'
 
 ### evalution on OfficeHome using Resnet-18
 python ensemble.py --cfg configs/OfficeHome_ens.yaml  
+
 python distill.py --cfg configs/OfficeHome_dis.yaml 
 
 ### evalution on OfficeHome using Resnet-50 
 python ensemble.py --cfg configs/OfficeHome_ens_res50.yaml  
+
 python distill.py --cfg configs/OfficeHome_dis_res50.yaml
 
 ### evalution on PACS using Resnet-18 
 python ensemble.py --cfg configs/PACS_ens.yaml  
+
 python distill.py --cfg configs/PACS_dis.yaml
 
 ### evalution on PACS using Resnet-50 
-python ensemble.py --cfg configs/PACS_ens_res50.yaml  
+python ensemble.py --cfg configs/PACS_ens_res50.yaml 
+ 
 python distill.py --cfg configs/PACS_dis_res50.yaml
 
 
