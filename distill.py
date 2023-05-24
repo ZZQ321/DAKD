@@ -238,10 +238,9 @@ def train_one_epoch(config, model,criterion,distill, data_loader, optimizer, epo
             outputs = model(samples)
             loss_cata =criterion(outputs,targets.long())
             if config.DISTILL.IDENTICAL_LOGIT == True:
-                #√
-                loss_distil = distill.get_loss(samples,outputs,logit_type=config.DISTILL.TAR_TYPE,domain_labels=domain_labels)  
+                loss_distil = distill.get_loss(samples,outputs,domain_labels=domain_labels)
             else:
-                loss_distil = distill.get_loss(samples,outputs,logit_type=config.DISTILL.TAR_TYPE)
+                loss_distil = distill.get_loss(samples,outputs)
             gamma = config.DISTILL.GAMMA
             loss = (loss_cata + gamma * (config.TRAIN.T**2) * loss_distil)/config.TRAIN.ACCUMULATION_STEPS
             loss.backward()
