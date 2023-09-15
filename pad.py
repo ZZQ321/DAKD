@@ -36,7 +36,7 @@ def cal_latent_featurs_with_domain_lab(data_loader,model,domain_num):
 def main(config,args):
 # 训练集特征提取
     domain_num = len(config.DATA.DOMAINS)
-    for target_idx in range(3,4):
+    for target_idx in range(0,4):
         print('Target Domain:{}'.format(config.DATA.DOMAINS[target_idx]))
         train_loader,test_loader = build_pad_loader(config)  
         os.makedirs(os.path.join(config.OUTPUT,config.DATA.DOMAINS[target_idx]), exist_ok=True)
@@ -73,18 +73,18 @@ def train_svm(model,model_name,train_loader,test_loader,domain_num):
                 test_features = torch.cat((test_domains_fea[i],test_domains_fea[j]))
                   
                 # svm = SVC(kernel='linear',probability=True)
-                svm = make_pipeline(StandardScaler(), SVC(gamma='auto',probability=True))
+                svm = make_pipeline(StandardScaler(), SVC(gamma='auto',probability=False))
                 # 训练支持向量机
                 svm.fit(train_features, train_db_lab)
 
                 # 测试支持向量机
                 criterion = CrossEntropyLoss()
-                predicts = svm.predict_proba(test_features)
-                predicts = torch.from_numpy(predicts)
-                loss = criterion(predicts,test_db_lab.long())
+                # predicts = svm.predict_proba(test_features)
+                # predicts = torch.from_numpy(predicts)
+                # loss = criterion(predicts,test_db_lab.long())
                 test_acc = svm.score(test_features, test_db_lab)
                 pad = 2 - 4 * (1-test_acc)
-                print(model_name+': {}&{} PAD:{:.2f}  Loss: {}'.format(domains[i],domains[j],pad,loss))
+                print(model_name+': {}&{} PAD:{:.2f}'.format(domains[i],domains[j],pad))
 
 
 if __name__ == '__main__':

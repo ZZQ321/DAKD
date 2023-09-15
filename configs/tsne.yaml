@@ -8,7 +8,7 @@ MODEL:
   ENSEM_NAME: res18_real_no_mul
   ENSEMBLE_TAG: 'default'
   # ENSEMBLE_TAG: 'default'
-  DISTILL_TAG: 'noaug' #zzq slby_hpme'best_config_gray_crop_0.1_r0'
+  DISTILL_TAG: 'conv#fc_inv_specific' #zzq slby_hpme'best_config_gray_crop_0.1_r0'
   # DISTILL_TAG: 'default' #zzq slby_hpme'best_config_gray_crop_0.1_r0'
   CLASSIFIER: 'linear'
 TRAIN:

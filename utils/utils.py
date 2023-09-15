@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 from sklearn import manifold, datasets
 import seaborn as sns
 import pandas as pd
-sns.set(rc={'figure.figsize':(11.7,8.27)})
-# sns.set(rc={'figure.figsize':(23.4,16.54)})
+# sns.set(rc={'figure.figsize':(11.7,8.27)})
+sns.set(rc={'figure.figsize':(23.4,16.54)})
 sns.set_style("white")
-palette_sou_dm = sns.color_palette("bright", 3)
-palette_dm = sns.color_palette("bright", 4)
+# palette_sou_dm = sns.color_palette("bright", 3)
+# palette_dm = sns.color_palette("bright", 4)
+palette_sou_dm =  {'art painting': 'gray', 'cartoon': 'black', 'photo': 'yellow', 'sketch': 'lightblue'}
+palette_dm = {'art painting': 'gray', 'cartoon': 'black', 'photo': 'yellow', 'sketch': 'lightblue'}
 palette_cata = sns.color_palette("bright", 7)
 '''t-SNE'''
 
@@ -51,8 +53,9 @@ def tsne_plot_togeter(model_name,sou_X,sou_cata,sou_db,sou_exp,tar_X,tar_cata,ta
     print(torch.where(torch.isinf(X) | torch.isnan(X),1,0).sum().sum())
     X_tsne = tsne.fit_transform(X)
   
-    cata=['Dog','Elephant','Giraffe','Guitar','Horse','House' ,'Person']
-    domain=['artpairing','carton','photo','sketch']
+    # cata=['Dog','Elephant','Giraffe','Guitar','Horse','House' ,'Person']
+    cata=['dog','elephant','giraffe','guitar','horse','house' ,'person']
+    domain=['art painting','cartoon','photo','sketch']
     
     # data = pd.DataFrame({'X': X, 'y': y})
     # y=torch.LongTensor(y)

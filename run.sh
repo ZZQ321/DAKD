@@ -1,7 +1,9 @@
 
 
-python ensemble.py --cfg configs/PACS_ens_res50.yaml
-for gamma in 1.0
-do
-python distill.py --cfg configs/PACS_dis_res50.yaml --gamma ${gamma}
-done
+python distill.py --cfg configs/PACS_dis.yaml --gamma 1.0 --aug noaug --tag noaug --ens_tag noaug
+
+python distill.py --cfg configs/PACS_dis_res50.yaml --gamma 0.2 --aug noaug --tag noaug --ens_tag noaug
+
+python distill.py --cfg configs/OfficeHome_dis.yaml --gamma 1.0 --aug noaug --tag noaug --ens_tag noaug
+
+python distill.py --cfg configs/OfficeHome_dis_res50.yaml --gamma 0.2 --aug noaug --tag noaug --ens_tag noaug

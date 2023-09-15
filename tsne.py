@@ -165,8 +165,8 @@ def analysis_plot(sou_loader,tar_loader,model,target_idx,model_name,model_type='
 
 
     if model_type == 'distill':
-        tsne_plot_togeter('bold_'+model_name+'/together',sou_X,sou_cata,sou_db_label,None,tar_X,tar_cata_label,None,target_idx)
-        tsne_plot_separate('bold_'+model_name+'/separate',sou_X,sou_cata,sou_db_label,None,tar_X,tar_cata_label,None,target_idx)
+        tsne_plot_togeter('color2_coded_'+model_name+'/together',sou_X,sou_cata,sou_db_label,None,tar_X,tar_cata_label,None,target_idx)
+        tsne_plot_separate('color2_coded_'+model_name+'/separate',sou_X,sou_cata,sou_db_label,None,tar_X,tar_cata_label,None,target_idx)
     elif model_type == 'ens':
         tsne_plot_togeter('no_jitter',sou_X,sou_cata,sou_db_label,sou_expert,tar_X,tar_cata_label,tar_expert,target_idx)
 

@@ -27,6 +27,11 @@ from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from config import get_config
 from models.build import build_model
 import os
+
+from domainbed.algorithms import MMD
+from domainbed import hparams_registry
+from domainbed import algorithms
+
 import pdb
 def get_args():
     parser = argparse.ArgumentParser()
@@ -92,6 +97,7 @@ def get_args():
     parser.add_argument('--seed',type=int,help='')
     parser.add_argument('--dis_tar_type',type=str,help='')
     parser.add_argument('--distill',type=str,help='')
+    parser.add_argument('--algorithm',type=str,help='')
  # #######   
 
     args = parser.parse_args()
@@ -106,7 +112,7 @@ def get_args():
     return args,config
 
 
-def produce_cam(args,img_path,model,model_name,target_idx,load_ens=False):
+def produce_cam(args,img_path,model,model_name,target_idx,load_ens=False,domianbed=False):
     """ python cam.py -image-path <path_to_image>
     Example usage of loading an image, and computing:
         1. CAM
@@ -143,8 +149,11 @@ def produce_cam(args,img_path,model,model_name,target_idx,load_ens=False):
     # find_layer_types_recursive(model, [torch.nn.ReLU])
     if load_ens:
         target_layers = [model.models[0].layer4]
-    else:    
+    else: 
         target_layers = [model.layer4]
+
+
+
     rgb_img = cv2.imread(img_path, 1)[:, :, ::-1]
     rgb_img = np.float32(rgb_img) / 255
     input_tensor = preprocess_image(rgb_img,
@@ -213,7 +222,7 @@ def produce_cam(args,img_path,model,model_name,target_idx,load_ens=False):
 
 if __name__ == '__main__':
    args,config = get_args()
-   for target_idx in range(0,3):
+   for target_idx in range(3,4):
     model_erm = build_model(config,load_ens=True)
     #    erm_path = 'output/PACS/DeepAll_vallia_standardaug/default'
     #    erm_path = os.path.join(erm_path,config.DATA.DOMAINS[target_idx],'distill', f"{config.DATA.DOMAINS[target_idx]}_distilled_model.pth")
@@ -231,6 +240,15 @@ if __name__ == '__main__':
     base_path = os.path.join(base_path,config.DATA.DOMAINS[target_idx],'distill', f"{config.DATA.DOMAINS[target_idx]}_distilled_model.pth")
     model_base.load_state_dict(torch.load(base_path))
 
+#algo
+    algorithm_class = algorithms.get_algorithm_class(args.algorithm)
+    db_haparams =  hparams_registry.default_hparams(args.algorithm, 'PACS')
+    ctrmodel_path = os.path.join( 'domainbed/output/{}/{}'.format(args.algorithm,target_idx), 'model.pkl')
+    ctrmodel_dict = torch.load(ctrmodel_path)['model_dict']
+    ctr_algorithms = algorithm_class(input_shape=(3,224,224), num_classes=7, num_domains=3, hparams=db_haparams)
+    ctr_algorithms.load_state_dict(ctrmodel_dict)
+    ctr_algorithms.cuda()
+
     for domain_name  in ['art_painting','photo','cartoon','sketch']:
     #    for domain_name  in ['cartoon','photo','sketch']:
             domain_path = os.path.join('/home/zzq/data/PACS/',domain_name)
@@ -239,8 +257,9 @@ if __name__ == '__main__':
                 for img_name in os.listdir(class_path):
                     img_path = os.path.join(class_path,img_name)
                     # produce_cam(args,img_path,model_erm,'noji',target_idx=target_idx,load_ens=True)
-                    produce_cam(args,img_path,model_base,'base',target_idx=target_idx)
-                    produce_cam(args,img_path,model_dakd,'dakd',target_idx=target_idx)
+                    # produce_cam(args,img_path,model_base,'base',target_idx=target_idx)
+                    # produce_cam(args,img_path,model_dakd,'dakd',target_idx=target_idx)
+                    produce_cam(args,img_path,ctr_algorithms.network[0].network,args.algorithm,target_idx=target_idx,domianbed=True)
         
 
 #python grad_cam.py --use-cuda --shared_keys conv bn classifier

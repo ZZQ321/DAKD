@@ -48,9 +48,9 @@ def serach_best_pi_for_min_st_div(train_loader,test_loader,model,model_name,doma
     #遍历所有的每个元素不同的包含3个元素的组合
     pi_combs=[]
     for pi_0 in PI:
-        sum = pi_0
-        if sum < 10:
-            left = 10 - sum
+        sum_pi = pi_0
+        if sum_pi < 10:
+            left = 10 - sum_pi
             pi_left = [i for i in range(left+1)]
             for pi_1 in pi_left:
                 pi_2 = 10 - (pi_0+pi_1)
@@ -64,7 +64,7 @@ def serach_best_pi_for_min_st_div(train_loader,test_loader,model,model_name,doma
         train_features,train_labels = cal_latent_featurs_with_domain_lab(train_loader,model,domain_num,pi_comb,target_idx)
         test_features, test_labels = cal_latent_featurs_with_domain_lab(test_loader,model,domain_num,pi_comb,target_idx)
         # 定义支持向量机
-        svm = SVC(kernel='linear',probability=True)
+        svm = SVC(kernel='linear')#,probability=True)
         # 训练支持向量机
         svm.fit(train_features, train_labels)
         # 测试支持向量机
@@ -75,11 +75,11 @@ def serach_best_pi_for_min_st_div(train_loader,test_loader,model,model_name,doma
         print('{} -> {}'.format(pi_comb,pad))
     
     pad_min = min(pads)
-    pdb.set_trace()
+    pad_mean = sum(pads)/len(pads)
     min_idx = pads.index(pad_min)
     pi_min = pi_combs[min_idx]
     print(model_name + '   Min ST distance for Target {}  ->   Min:{:2f}  PI:{}'.format( config.DATA.DOMAINS[target_idx], pad_min, pi_min))
-
+    return pad_min,pi_min,pad_mean,pads
     
 
         
@@ -87,6 +87,18 @@ def serach_best_pi_for_min_st_div(train_loader,test_loader,model,model_name,doma
 def main(config,args):
 # 训练集特征提取
     domain_num = len(config.DATA.DOMAINS)
+    pad_mins_base=[]
+    pi_mins_base = []
+    pad_means_base = []
+    pads_base = []
+    pad_mins_dakd=[]
+    pi_mins_dakd = []
+    pad_means_dakd = []
+    pads_dakd = []
+    pad_mins_algo=[]
+    pi_mins_algo = []
+    pad_means_algo = []
+    pads_algo = []
     for target_idx in range(domain_num):
         train_loader,test_loader = build_pad_loader(config)  
         os.makedirs(os.path.join(config.OUTPUT,config.DATA.DOMAINS[target_idx]), exist_ok=True)
@@ -95,9 +107,22 @@ def main(config,args):
         model_path = os.path.join(config.DISTILL_PATH,config.DATA.DOMAINS[target_idx],'distill', f"{config.DATA.DOMAINS[target_idx]}_distilled_model.pth")
         model.load_state_dict(torch.load(model_path))
         model.eval()
-        serach_best_pi_for_min_st_div(train_loader,test_loader,model,'dakd',domain_num,target_idx)
+        pad_min,pi_min,pad_mean,pad = serach_best_pi_for_min_st_div(train_loader,test_loader,model,'dakd',domain_num,target_idx)
+        pad_mins_dakd.append(pad_min)
+        pi_mins_dakd.append(pi_min)
+        pad_means_dakd.append(pad_mean)
+        pads_dakd.append(pad)
         print('\n')
 
+#base
+        model_path = os.path.join('output/PACS/res18_real_no_mul/noaug',config.DATA.DOMAINS[target_idx],'distill', f"{config.DATA.DOMAINS[target_idx]}_distilled_model.pth")
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+        pad_min,pi_min,pad_mean,pad  = serach_best_pi_for_min_st_div(train_loader,test_loader,model,'base',domain_num,target_idx)
+        pad_mins_base.append(pad_min)
+        pi_mins_base.append(pi_min)
+        pad_means_base.append(pad_mean)
+        pads_base.append(pad)
 
 #MMD    
         algorithm_class = algorithms.get_algorithm_class(args.algorithm)
@@ -107,8 +132,25 @@ def main(config,args):
         ctr_algorithms = algorithm_class(input_shape=(3,224,224), num_classes=7, num_domains=3, hparams=db_haparams)
         ctr_algorithms.load_state_dict(ctrmodel_dict)
         ctr_algorithms.cuda()
-        serach_best_pi_for_min_st_div(train_loader,test_loader,model,args.algorithm,domain_num,target_idx)
+        pad_min,pi_min,pad_mean,pad  = serach_best_pi_for_min_st_div(train_loader,test_loader,model,args.algorithm,domain_num,target_idx)
+        pad_mins_algo.append(pad_min)
+        pi_mins_algo.append(pi_min)
+        pad_means_algo.append(pad_mean)
+        pads_algo.append(pad)
         print('\n\n')
+    
+    for target_idx in range(domain_num):
+        print('DeepAll \t Algo \t  DAKD \t')
+        print('{}\t  {}\t  {}\t  {}\t  {}\t  {}\t'.format(pad_mins_base[target_idx],\
+        pad_mins_algo[target_idx], pad_mins_dakd[target_idx],\
+        pi_mins_base[target_idx],pi_mins_algo[target_idx], pi_mins_dakd[target_idx]   ))
+        print('{}\t  {}\t  {}\t'.format(pad_means_base[target_idx],\
+        pad_means_algo[target_idx], pad_means_dakd[target_idx]   ))
+
+        print('{}\t  {}\t  {}\t'.format(pads_base[target_idx],\
+        pads_algo[target_idx], pads_dakd[target_idx]   ))
+
+
 
 def train_svm(model,model_name,train_loader,test_loader,domain_num,target_idx):
 
