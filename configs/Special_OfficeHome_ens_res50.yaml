@@ -1,7 +1,6 @@
 MODEL:
   TYPE: ResNet50_Branches
-  NAME: res50_real_no_mul
-  DROP_PATH_RATE: 0.
+  NAME: res50_lambda
   CLASSIFIER: 'linear'
 TRAIN:
   OPTIMIZER:
@@ -19,10 +18,11 @@ TRAIN:
   T: 5.0
   MODEL_SELECTION: 'valacc' #valacc
 DATA :
-  DATASET: 'PACS'
+  DATASET: 'SpecialOfficeHome'
   SPLIT: 'special'
-  NUM_WORKERS : 1
+  SPLIT_RATE: 0.9
   BATCH_SIZE: 16
+  NUM_WORKERS : 1
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
   
