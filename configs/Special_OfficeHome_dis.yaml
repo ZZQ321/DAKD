@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet18
-  NAME: res18_real_nomul
+  NAME: res18_lambda
   ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: res18_real_nomul
+  ENSEM_NAME: res18_lambda
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:
@@ -18,17 +18,17 @@ TRAIN:
   T: 5.0
   ACCUMULATION_STEPS: 1
   RANDOM_SAMPLER: True
-  MODEL_SELECTION: 'valacc' #valacc
+  MODEL_SELECTION: 'lossacc' #valacc
 DATA :
-  DATASET: 'VLCS'
-  SPLIT: 'indomain'
-  SPLIT_RATE: 0.8
+  DATASET: 'SpecialOfficeHome'
+  SPLIT: 'special'
+  SPLIT_RATE: 0.9
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.1
+  GAMMA: 0.2
   IDENTICAL_LOGIT: True
 AUG: 
-  AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
+  AUTO_AUGMENT: 'standard'
   
 
 

@@ -135,11 +135,12 @@ class Distilation(object):
         if self.shared:
             with torch.no_grad():
                 x =[deepcopy(x) for _ in range(self.ensemble.branch_num)]
-                out = self.ensemble(x)
+                out = torch.stack(self.ensemble(x))
+                out = torch.sum(out,1)
                 source_domain_num = len(out)
                 targets=[]
                 for index in range(source_domain_num):
-                    targets.append(torch.softmax(out[index][1]/self.T,-1))
+                    targets.append(torch.softmax(out[index]/self.T,-1))
             if domain_labels is not None:
                 targets = [targets[domain_labels[i]][i] for i in range(len(targets[0]))]
                 targets = torch.stack(targets).detach()

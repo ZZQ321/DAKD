@@ -1,6 +1,6 @@
 MODEL:
   TYPE: ResNet18_Branches
-  NAME: resnetbranches_nomul_nolsl_identical_path_ens_valmax_train_partial_standaug_dist_standaug_lossmin_train_parial_nocen_noshu_latest0.2
+  NAME: res18_real_no_mul
   DROP_PATH_RATE: 0.
   CLASSIFIER: 'linear'
 TRAIN:
@@ -21,7 +21,7 @@ TRAIN:
 DATA :
   DATASET: 'PACS'
   SPLIT: 'special'
-  
+  NUM_WORKERS : 1
   BATCH_SIZE: 16
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto

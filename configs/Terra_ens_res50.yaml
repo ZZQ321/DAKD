@@ -1,34 +1,30 @@
 MODEL:
-  TYPE: ResNet18
-  NAME: res18_real_nomul
-  ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: res18_real_nomul
+  TYPE: ResNet50_Branches
+  NAME: res50_real_nomul
   CLASSIFIER: 'linear'
-  DROP_PATH_RATE: 0.
 TRAIN:
   OPTIMIZER:
     NAME: 'sgd'
   LR_SCHEDULER:
     NAME: 'cosine'
-  BASE_LR: 0.001
+  BASE_LR: 0.001  
   WEIGHT_DECAY: 5e-4
   MIN_LR: 1e-4
   EPOCHS: 60
   CLIP_GRAD: 20.0    #waited to make sure
+  PRE_EPOCH: 0
+  WARMUP_EPOCHS: 0    
+  WARMUP_LR: 1.25e-4
   T: 5.0
-  ACCUMULATION_STEPS: 1
-  RANDOM_SAMPLER: True
   MODEL_SELECTION: 'valacc' #valacc
 DATA :
-  DATASET: 'VLCS'
+  DATASET: 'TerraIncognita'
   SPLIT: 'indomain'
   SPLIT_RATE: 0.8
   BATCH_SIZE: 16
-DISTILL:
-  GAMMA: 0.1
-  IDENTICAL_LOGIT: True
+  NUM_WORKERS : 1
 AUG: 
-  AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
+  AUTO_AUGMENT: 'db_standard' #rand-m9-mstd0.5-inc1,auto
   
 
 

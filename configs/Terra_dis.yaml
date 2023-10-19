@@ -18,14 +18,14 @@ TRAIN:
   T: 5.0
   ACCUMULATION_STEPS: 1
   RANDOM_SAMPLER: True
-  MODEL_SELECTION: 'valacc' #valacc
+  MODEL_SELECTION: 'lossacc' #valacc
 DATA :
-  DATASET: 'VLCS'
+  DATASET: 'TerraIncognita'
   SPLIT: 'indomain'
-  SPLIT_RATE: 0.8
+  SPLIT_RATE : 0.8
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.1
+  GAMMA: 1.0
   IDENTICAL_LOGIT: True
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto

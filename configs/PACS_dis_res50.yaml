@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet50
-  NAME: resnet50branches_nolsl_identical_path_ens_valmin_trainpartial_standaug_dist_standaug_lossmin_train_partial
+  NAME: res50_real_no_mul
   ENSEM_TYPE: ResNet50_Branches
-  ENSEM_NAME: resnet50branches_nolsl_identical_path_ens_valmin_trainpartial_standaug_dist_standaug_lossmin_train_partial
+  ENSEM_NAME: res50_real_no_mul
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.
 TRAIN:
@@ -25,7 +25,7 @@ DATA :
   SPLIT_RATE : 0.7
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.1
+  GAMMA: 1.0
   IDENTICAL_LOGIT: True
 AUG: 
   AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto

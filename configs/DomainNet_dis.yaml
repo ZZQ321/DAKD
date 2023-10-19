@@ -1,8 +1,8 @@
 MODEL:
   TYPE: ResNet50
-  NAME: res50_real_nomul
+  NAME: resnet50branches_nomul_nolsl_identical_path_ens_valmax_trainpartial_standaug_dist_standaug_train_partial0.5
   ENSEM_TYPE: ResNet50_Branches
-  ENSEM_NAME: res50_real_nomul
+  ENSEM_NAME: resnet50branches_nomul_nolsl_identical_path_ens_valmax_trainpartial_standaug_dist_standaug_train_partial0.5
   CLASSIFIER: 'linear'
   DROP_PATH_RATE: 0.5
 TRAIN:
@@ -20,12 +20,12 @@ TRAIN:
   RANDOM_SAMPLER: True
   MODEL_SELECTION: 'lossacc' #valacc
 DATA :
-  DATASET: 'OfficeHome'
+  DATASET: 'DomainNet'
   SPLIT: 'indomain'
   SPLIT_RATE : 0.8
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.2
+  GAMMA: 0.5
   IDENTICAL_LOGIT: True
 AUG: 
   AUTO_AUGMENT: 'db_standard' #rand-m9-mstd0.5-inc1,auto

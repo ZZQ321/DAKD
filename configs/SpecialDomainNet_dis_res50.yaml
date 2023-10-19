@@ -1,10 +1,10 @@
 MODEL:
-  TYPE: ResNet18
-  NAME: res18_real_nomul
-  ENSEM_TYPE: ResNet18_Branches
-  ENSEM_NAME: res18_real_nomul
+  TYPE: ResNet50
+  NAME: resnet50_real_no_mul
+  ENSEM_TYPE: ResNet50_Branches
+  ENSEM_NAME: resnet50_real_no_mul
   CLASSIFIER: 'linear'
-  DROP_PATH_RATE: 0.
+  DROP_PATH_RATE: 0.5
 TRAIN:
   OPTIMIZER:
     NAME: 'sgd'
@@ -20,15 +20,15 @@ TRAIN:
   RANDOM_SAMPLER: True
   MODEL_SELECTION: 'valacc' #valacc
 DATA :
-  DATASET: 'VLCS'
-  SPLIT: 'indomain'
-  SPLIT_RATE: 0.8
+  DATASET: 'SpecialDomainNet'
+  SPLIT: 'special'  #not work
+  SPLIT_RATE : 0.9  #not work
   BATCH_SIZE: 16
 DISTILL:
-  GAMMA: 0.1
+  GAMMA: 0.5
   IDENTICAL_LOGIT: True
 AUG: 
-  AUTO_AUGMENT: 'standard' #rand-m9-mstd0.5-inc1,auto
+  AUTO_AUGMENT: 'standard'
   
 
 

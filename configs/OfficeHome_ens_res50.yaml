@@ -1,7 +1,6 @@
 MODEL:
   TYPE: ResNet50_Branches
-  NAME: resnet50branches_nolsl_identical_path_ens_valmin_trainpartial_standaug_dist_standaug_train_partial
-  DROP_PATH_RATE: 0.5
+  NAME: res50_real_nomul
   CLASSIFIER: 'linear'
 TRAIN:
   OPTIMIZER:
@@ -23,6 +22,7 @@ DATA :
   SPLIT: 'indomain'
   SPLIT_RATE: 0.8
   BATCH_SIZE: 16
+  NUM_WORKERS : 1
 AUG: 
   AUTO_AUGMENT: 'db_standard' #rand-m9-mstd0.5-inc1,auto
   
