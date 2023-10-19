@@ -269,8 +269,6 @@ def update_config(config, args):
         config.AUG.AUGMENT = args.aug
     if args.seed:
         config.seed = args.seed
-    if args.dis_tar_type:
-        config.DISTILL.TAR_TYPE = args.dis_tar_type
     if args.distill:
         if args.distill == 'specific':
             config.DISTILL.IDENTICAL_LOGIT = True
